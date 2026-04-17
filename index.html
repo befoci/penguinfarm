@@ -648,6 +648,7 @@ function checkAnswer() {
     stopAll();
     play('ambient', 0.55);
     $('correct-screen').classList.add('show');
+    setTimeout(() => { window.location.href = 'barn.html'; }, 2200);
   } else {
     stopAll();
     play('bad', 0.55);
