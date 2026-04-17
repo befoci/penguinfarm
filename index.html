@@ -596,21 +596,20 @@ function observeAll() {
         heartbeatFired = true;
         el.classList.add('in');
         play('heartbeat', 0.35);
-        setTimeout(() => $('answer-input').focus(), 400);
       }
     });
   }, { threshold: 0.2 });
 
   document.querySelectorAll('.blk, .sep, #question-section').forEach(el => obs.observe(el));
 
-  // 쾅 — 요소가 화면 중앙 이상 올라왔을 때 발동
+  // 쾅 — 요소가 50% 올라왔을 때 발동
   const bangObs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (!e.isIntersecting || bangFired) return;
       bangFired = true;
       triggerBang();
     });
-  }, { threshold: 1.0, rootMargin: '0px 0px -20% 0px' });
+  }, { threshold: 0.5 });
 
   bangObs.observe($('bang-trigger'));
 }
