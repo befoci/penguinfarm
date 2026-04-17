@@ -51,6 +51,13 @@
       pointer-events: none; z-index: 600;
     }
 
+    /* 흔들림 레이어 (스크롤 위치 영향 없이 shake만 담당) */
+    #shake-layer {
+      position: absolute; inset: 0;
+      pointer-events: none; z-index: 598;
+    }
+    #shake-layer.shaking { animation: shake 0.55s ease-out; }
+
     /* ── TITLE ── */
     #title-screen {
       position: absolute; inset: 0;
@@ -371,6 +378,7 @@
 <body>
 <div id="game">
   <div id="flash"></div>
+  <div id="shake-layer"></div>
 
   <!-- TITLE -->
   <div id="title-screen">
@@ -612,19 +620,21 @@ function triggerBang() {
   play('door', 1.0);
 
   const flash = $('flash');
-  const game  = $('game');
+  const shakeLayer = $('shake-layer');
 
   flash.style.transition = 'none';
   flash.style.background = 'rgba(255,255,255,0.95)';
-  game.classList.add('shaking');
+  shakeLayer.classList.add('shaking');
 
   setTimeout(() => {
     flash.style.transition = 'background 0.5s ease';
     flash.style.background = 'rgba(255,255,255,0)';
-    game.classList.remove('shaking');
   }, 70);
 
-  setTimeout(() => { flash.style.transition = ''; }, 600);
+  setTimeout(() => {
+    flash.style.transition = '';
+    shakeLayer.classList.remove('shaking');
+  }, 620);
 }
 
 /* ── ANSWER ── */
