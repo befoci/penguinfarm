@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>펭귄 농장</title>
+  <link href="https://fonts.googleapis.com/css2?family=Maru+Buri:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #000;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #game {
+      position: relative;
+      width: 100%; max-width: 480px;
+      height: 100dvh;
+      margin: 0 auto;
+      background: #000;
+      font-family: 'Maru Buri', 'Nanum Myeongjo', serif;
+      overflow: hidden;
+    }
+
+    /* 스캔라인 */
+    #game::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 3px,
+        rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px
+      );
+      pointer-events: none; z-index: 500;
+    }
+
+    /* 비네트 */
+    #game::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+      pointer-events: none; z-index: 499;
+    }
+
+    /* 플래시 */
+    #flash {
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0);
+      pointer-events: none; z-index: 600;
+    }
+
+    /* ── TITLE ── */
+    #title-screen {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 200;
+      cursor: pointer;
+      transition: opacity 0.8s ease;
+    }
+    #title-screen.fade-out { opacity: 0; pointer-events: none; }
+
+    .title-eyebrow {
+      font-size: 10px; letter-spacing: 7px;
+      color: #666666; margin-bottom: 32px;
+    }
+    .title-main {
+      font-size: 42px; font-weight: 700;
+      color: #cc0000; letter-spacing: 10px;
+      text-shadow:
+        0 0 20px rgba(204,0,0,0.7),
+        0 0 50px rgba(204,0,0,0.3);
+      margin-bottom: 8px;
+    }
+    .title-divider {
+      width: 60px; height: 1px;
+      background: linear-gradient(to right, transparent, #440000, transparent);
+      margin: 24px auto;
+    }
+    .title-sub {
+      font-size: 10px; letter-spacing: 5px;
+      color: #777777; margin-bottom: 64px;
+    }
+    .title-tap {
+      font-size: 11px; letter-spacing: 4px;
+      color: #aaaaaa;
+      animation: blink 1.8s ease-in-out infinite;
+    }
+
+    /* ── SCROLL CONTAINER ── */
+    #scroll-wrap {
+      position: absolute; inset: 0;
+      overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.8s ease 0.4s;
+      scrollbar-width: none;
+    }
+    #scroll-wrap::-webkit-scrollbar { display: none; }
+    #scroll-wrap.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .story {
+      padding: 72px 36px 120px;
+    }
+
+    /* ── STORY LABEL ── */
+    .story-label {
+      font-size: 9px; letter-spacing: 6px;
+      color: #555555; margin-bottom: 56px;
+    }
+
+    /* ── STORY BLOCKS ── */
+    .blk {
+      margin-bottom: 40px;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .blk.in { opacity: 1; transform: translateY(0); }
+
+    /* 서술 */
+    .n {
+      font-size: 15px; line-height: 2.1;
+      color: #cc0000;
+      margin-bottom: 10px;
+    }
+    .n:last-child { margin-bottom: 0; }
+
+    /* 대사 */
+    .d {
+      font-size: 15px; line-height: 2.1;
+      color: #ffffff;
+      margin-bottom: 10px;
+    }
+    .d:last-child { margin-bottom: 0; }
+
+    /* 분위기 */
+    .a {
+      font-size: 13px; letter-spacing: 3px; line-height: 2.4;
+      color: #999999;
+      margin-bottom: 8px;
+    }
+    .a:last-child { margin-bottom: 0; }
+
+    /* 강조 */
+    .em {
+      font-size: 20px; font-weight: 700;
+      color: #ff2222; letter-spacing: 2px;
+      text-shadow: 0 0 14px rgba(255,0,0,0.5);
+    }
+
+    /* 카메라 */
+    .cam-label {
+      display: inline-block;
+      font-size: 11px; letter-spacing: 6px;
+      color: #ff3333;
+      border: 1px solid #330000; padding: 8px 20px;
+    }
+
+    /* 씬 구분선 */
+    .sep {
+      text-align: center;
+      font-size: 11px; letter-spacing: 6px;
+      color: #333333;
+      margin: 48px 0;
+      opacity: 0;
+      transition: opacity 0.7s ease;
+    }
+    .sep.in { opacity: 1; }
+
+    /* 간판 비주얼 */
+    .sign-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 12px; margin: 8px 0;
+    }
+    .sign-board {
+      border: 2px solid #cc3300;
+      padding: 14px 28px;
+      font-size: 22px; font-weight: 700;
+      color: #ffcc00; letter-spacing: 6px;
+      text-shadow:
+        0 0 8px rgba(255,200,0,0.9),
+        0 0 20px rgba(255,200,0,0.5);
+      box-shadow:
+        0 0 12px rgba(204,51,0,0.5),
+        0 0 30px rgba(204,51,0,0.2),
+        inset 0 0 20px rgba(0,0,0,0.8);
+      background: #0a0000;
+      animation: sign-glow 2.5s ease-in-out infinite alternate;
+    }
+    @keyframes sign-glow {
+      from { box-shadow: 0 0 8px rgba(204,51,0,0.4), 0 0 25px rgba(204,51,0,0.15), inset 0 0 20px rgba(0,0,0,0.8); }
+      to   { box-shadow: 0 0 18px rgba(204,51,0,0.8), 0 0 50px rgba(204,51,0,0.35), inset 0 0 20px rgba(0,0,0,0.8); }
+    }
+    .sign-note {
+      font-size: 10px; letter-spacing: 3px;
+      color: #888888;
+    }
+
+    /* 철제문 비주얼 */
+    .door-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 12px; margin: 8px 0;
+    }
+    .door-svg-wrap {
+      position: relative; width: 100px; height: 140px;
+    }
+    .door-gap {
+      position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+      background: linear-gradient(to right, #1a1a1a, #000);
+    }
+    .door-panel {
+      position: absolute; left: 6px; top: 0; right: 0; bottom: 0;
+      background:
+        repeating-linear-gradient(90deg, transparent 0px, transparent 18px, rgba(255,255,255,0.015) 18px, rgba(255,255,255,0.015) 19px),
+        repeating-linear-gradient(0deg,  transparent 0px, transparent 30px, rgba(255,255,255,0.015) 30px, rgba(255,255,255,0.015) 31px),
+        linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 50%, #111 100%);
+      border: 1px solid #333; border-left: 2px solid #555;
+    }
+    .door-handle {
+      position: absolute; right: 14px; top: 50%;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #666; border: 1px solid #888;
+      transform: translateY(-50%);
+    }
+    .door-note {
+      font-size: 10px; letter-spacing: 3px; color: #888888;
+    }
+
+    /* 쾅 블록 */
+    .bang-blk {
+      text-align: center;
+      margin: 48px 0;
+    }
+    .bang-txt {
+      font-size: 52px; font-weight: 700;
+      color: #ffffff; letter-spacing: 6px;
+      text-shadow: 0 0 30px rgba(255,255,255,0.5);
+    }
+
+    /* ── QUESTION SECTION ── */
+    #question-section {
+      margin-top: 64px;
+      padding-top: 48px;
+      border-top: 1px solid #1a0000;
+      opacity: 0;
+      transition: opacity 0.7s ease;
+      text-align: center;
+    }
+    #question-section.in { opacity: 1; }
+
+    .q-bracket {
+      font-size: 10px; letter-spacing: 7px;
+      color: #888888; margin-bottom: 20px;
+    }
+    .q-text {
+      font-size: 17px; line-height: 1.9;
+      color: #cc0000;
+      text-shadow: 0 0 8px rgba(204,0,0,0.2);
+      margin-bottom: 40px;
+    }
+    #answer-input {
+      width: 100%; background: transparent;
+      border: none; border-bottom: 1px solid #333333;
+      color: #ff4444;
+      font-family: 'Maru Buri', serif;
+      font-size: 17px; letter-spacing: 2px;
+      padding: 10px 0; outline: none;
+      caret-color: #cc0000;
+    }
+    #answer-input::placeholder { color: #555555; }
+    #submit-btn {
+      margin-top: 28px; width: 100%;
+      padding: 13px; background: transparent;
+      border: 1px solid #555555; color: #aaaaaa;
+      border-radius: 8px;
+      font-family: 'Maru Buri', serif;
+      font-size: 11px; letter-spacing: 5px;
+      cursor: pointer;
+      transition: border-color 0.3s, color 0.3s;
+    }
+    #submit-btn:hover, #submit-btn:active {
+      border-color: #cc0000; color: #ffffff;
+    }
+
+    /* ── OVERLAY SCREENS ── */
+    .overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 56px 36px;
+      background: #000; z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+
+    /* bad ending */
+    .be-tag {
+      font-size: 9px; letter-spacing: 7px;
+      color: #666666; margin-bottom: 40px;
+    }
+    .be-text {
+      font-size: 14px; line-height: 2.4;
+      color: #aaaaaa; margin-bottom: 36px;
+    }
+    .be-wrong {
+      color: #cc0000; font-weight: 600;
+      text-shadow: 0 0 8px rgba(204,0,0,0.3);
+    }
+    .be-ending {
+      font-size: 22px; font-weight: 700;
+      color: #cc0000; letter-spacing: 5px;
+      text-shadow: 0 0 15px rgba(204,0,0,0.4);
+      margin-bottom: 48px;
+    }
+    #retry-btn {
+      padding: 13px; background: transparent;
+      border: 1px solid #555555; color: #aaaaaa;
+      font-family: 'Maru Buri', serif;
+      font-size: 11px; letter-spacing: 5px;
+      cursor: pointer;
+      transition: border-color 0.3s, color 0.3s;
+    }
+    #retry-btn:hover, #retry-btn:active {
+      border-color: #cc0000; color: #ffffff;
+    }
+
+    /* correct */
+    #correct-screen {
+      align-items: center; text-align: center;
+    }
+    .correct-line {
+      font-size: 14px; letter-spacing: 3px;
+      color: #aaaaaa; line-height: 3;
+    }
+    .correct-sep {
+      width: 40px; height: 1px;
+      background: #444; margin: 24px auto;
+    }
+    .correct-next {
+      font-size: 11px; letter-spacing: 5px;
+      color: #666666;
+    }
+
+    /* ── UTILITIES ── */
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.15; }
+    }
+    @keyframes shake {
+      0%,100% { transform: translate(0,0); }
+      10% { transform: translate(-9px,5px); }
+      20% { transform: translate(9px,-5px); }
+      30% { transform: translate(-7px,3px); }
+      40% { transform: translate(7px,-3px); }
+      50% { transform: translate(-5px,4px); }
+      60% { transform: translate(5px,-2px); }
+      70% { transform: translate(-3px,1px); }
+      80% { transform: translate(3px,-1px); }
+    }
+    .shaking { animation: shake 0.55s ease-out; }
+  </style>
+</head>
+<body>
+<div id="game">
+  <div id="flash"></div>
+
+  <!-- TITLE -->
+  <div id="title-screen">
+    <div class="title-eyebrow">HORROR MAZE WEB GAME</div>
+    <div class="title-main">펭귄 농장</div>
+    <div class="title-divider"></div>
+    <div class="title-sub">PROLOGUE</div>
+    <div class="title-tap">화면을 터치하여 시작</div>
+  </div>
+
+  <!-- SCROLL STORY -->
+  <div id="scroll-wrap">
+    <div class="story">
+      <div class="story-label">PROLOGUE — 펭귄 농장 입구</div>
+
+      <div class="blk">
+        <p class="n">T는 공포 폐가를 탐험하는 유튜버를 꿈꾸는 신입이다.</p>
+        <p class="n">첫 콘텐츠로는 공포 스팟으로 유명한 펭귄 목장에 왔다.</p>
+      </div>
+
+      <div class="blk" style="text-align:center;">
+        <span class="cam-label">[ 카메라 ON ]</span>
+      </div>
+
+      <div class="blk">
+        <p class="d">"자, 여러분~ 오늘은 꽤 유명한 목장에 와봤습니다."</p>
+        <p class="d">"이름은… 펭귄 목장!"</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"하지만, 이곳은 펭귄을 기르는 곳이 아닌 정말 평범한 소 목장이었다고 합니다."</p>
+      </div>
+
+      <div class="sep">· · ·</div>
+
+      <div class="blk">
+        <p class="a">삭은 건물</p>
+        <p class="a">사방에 널린 폐기물</p>
+        <p class="a">녹슨 쇳조각들의 비릿한 쇠냄새</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">하지만 더욱 소름이 돋는 건 —</p>
+        <p class="n">간판만은 아직 새것과 같이 반짝반짝 빛나고 있다는 것이다.</p>
+      </div>
+
+      <div class="blk">
+        <div class="sign-wrap">
+          <div class="sign-board">펭귄농장</div>
+        </div>
+      </div>
+
+      <div class="blk">
+        <p class="n">그 간판은 유난히 깨끗하고 반짝반짝 빛나고 있었다.</p>
+        <p class="n">이제까지 방문했던 곳과는 사뭇 다른 분위기에 T는 쫄아버렸지만 최대한 티를 내지 않으려고 한다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"지금은 폐가가 된 지 꽤 됐고요"</p>
+        <p class="d">"들어간 사람 중 몇 명은 실종됐다는 이야기도 있습니다."</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"점점 재밌어지네요, 오늘 이 목장 제가 끝까지 다 털어보겠습니다."</p>
+      </div>
+
+      <div class="sep">· · ·</div>
+
+      <div class="blk">
+        <p class="n">T는 쓰레기의 잔해를 넘어 반짝거리는 간판으로 다가갔다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"간판에 오타가 있나 보네요"</p>
+        <p class="d"><strong>"[폥귄 목장]인데 [폥귄 농장]으로 되어 있네요?"</strong></p>
+      </div>
+
+      <div class="blk">
+        <p class="n">그리고 간판 아래에서 건물의 허름함과 달리 너무 깨끗한 철제문을 발견했다.</p>
+      </div>
+
+      <div class="blk">
+        <div class="door-wrap">
+          <div class="door-svg-wrap">
+            <div class="door-gap"></div>
+            <div class="door-panel"><div class="door-handle"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="blk">
+        <p class="n">T는 불안한 기분에 녹화를 잠시 중단하고 들어갈지 말지 고민을 하기 시작했다.</p>
+        <p class="d">"이 문은 왜 새 문처럼 멀쩡하지…?"</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">벽에는 검은 흔적과 이끼 등 세월의 흔적이 느껴지고,</p>
+        <p class="n">주변은 온갖 폐쓰레기로 가득했는데</p>
+        <p class="n">그 문 하나만 막 설치한 것처럼 새것이었다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"여기 들어가도 되는 건가…"</p>
+        <p class="n">문은 살짝 열려있었다.</p>
+        <p class="a">그 틈은 완전히 새까맣다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">아무것도 보이지 않아 T는 주춤주춤 다가갔다.</p>
+        <p class="n">조금 더 열려고 문고리를 잡아 힘을 주는 순간 —</p>
+      </div>
+
+      <!-- 쾅 -->
+      <div class="blk bang-blk" id="bang-trigger">
+        <div class="bang-txt">[ 쾅 — ]</div>
+      </div>
+
+      <div class="blk">
+        <p class="n">문이 갑자기 닫혔다.</p>
+        <p class="em">"으악!"</p>
+        <p class="n">큰 소리에 놀란 심장이 쿵쾅대고 팔은 덜덜 떨렸다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"…하하…"</p>
+        <p class="d">"바람이 불었나…?"</p>
+      </div>
+
+      <div class="sep">· · ·</div>
+
+      <div class="blk">
+        <p class="n">그때, 문 옆 벽에 적힌 글자가 눈에 들어왔다.</p>
+        <p class="n">아까까지는 보이지 않던 문장.</p>
+        <p class="n">그 문장은 점점 또렷하게 보이기 시작했고 T는 자신도 모르게 입을 열었다.</p>
+      </div>
+
+      <!-- 문제 -->
+      <div id="question-section">
+        <div class="q-bracket">— 문 제 —</div>
+        <div class="q-text">당신이 방문한 곳은<br>어디인가?</div>
+        <input
+          type="text" id="answer-input"
+          placeholder="답을 입력하시오…"
+          autocomplete="off" spellcheck="false"
+        />
+        <button id="submit-btn">정답입력</button>
+      </div>
+
+    </div><!-- .story -->
+  </div><!-- #scroll-wrap -->
+
+  <!-- BAD ENDING OVERLAY -->
+  <div class="overlay" id="bad-ending">
+    <div class="be-tag">— ENDING · 촬영 실패 —</div>
+    <div class="be-text" id="be-text"></div>
+    <div class="be-ending">[ 촬영 실패 ]</div>
+    <button id="retry-btn">다시 시도</button>
+  </div>
+
+  <!-- CORRECT OVERLAY -->
+  <div class="overlay" id="correct-screen">
+    <div class="correct-line">철제문이 천천히 열렸다.</div>
+    <div class="correct-sep"></div>
+    <div class="correct-next">1# 축사 — 준비 중</div>
+  </div>
+
+</div><!-- #game -->
+
+<audio id="aud-ambient"   src="ambient.mp3"   loop preload="auto"></audio>
+<audio id="aud-heartbeat" src="heartbeat.mp3" loop preload="auto"></audio>
+<audio id="aud-door"      src="Metal_Door.mp3"     preload="auto"></audio>
+<audio id="aud-bad"       src="bad_ending.mp3" loop preload="auto"></audio>
+
+<script>
+const $ = id => document.getElementById(id);
+
+/* ── AUDIO ── */
+const AUD = {
+  ambient:   $('aud-ambient'),
+  heartbeat: $('aud-heartbeat'),
+  door:      $('aud-door'),
+  bad:       $('aud-bad'),
+};
+function play(k, v=0.6){ const a=AUD[k]; if(!a)return; a.volume=v; a.currentTime=0; a.play().catch(()=>{}); }
+function stop(k){ const a=AUD[k]; if(!a)return; a.pause(); a.currentTime=0; }
+function stopAll(){ Object.values(AUD).forEach(a=>{ a.pause(); a.currentTime=0; }); }
+
+/* ── TITLE START ── */
+const titleEl   = $('title-screen');
+const scrollWrap = $('scroll-wrap');
+
+titleEl.addEventListener('click', () => {
+  titleEl.classList.add('fade-out');
+  setTimeout(() => {
+    titleEl.style.display = 'none';
+    scrollWrap.classList.add('visible');
+    observeAll();
+  }, 800);
+});
+
+/* ── INTERSECTION OBSERVER ── */
+let bangFired     = false;
+let heartbeatFired = false;
+
+function observeAll() {
+  // 일반 페이드인
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const el = e.target;
+      if (el.classList.contains('blk') || el.classList.contains('sep')) {
+        el.classList.add('in');
+      }
+      if (el.id === 'question-section' && !heartbeatFired) {
+        heartbeatFired = true;
+        el.classList.add('in');
+        play('heartbeat', 0.35);
+        setTimeout(() => $('answer-input').focus(), 400);
+      }
+    });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll('.blk, .sep, #question-section').forEach(el => obs.observe(el));
+
+  // 쾅 — 요소가 화면 중앙 이상 올라왔을 때 발동
+  const bangObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting || bangFired) return;
+      bangFired = true;
+      triggerBang();
+    });
+  }, { threshold: 1.0, rootMargin: '0px 0px -20% 0px' });
+
+  bangObs.observe($('bang-trigger'));
+}
+
+/* ── 쾅 EFFECT ── */
+function triggerBang() {
+  play('door', 1.0);
+
+  const flash = $('flash');
+  const game  = $('game');
+
+  flash.style.transition = 'none';
+  flash.style.background = 'rgba(255,255,255,0.95)';
+  game.classList.add('shaking');
+
+  setTimeout(() => {
+    flash.style.transition = 'background 0.5s ease';
+    flash.style.background = 'rgba(255,255,255,0)';
+    game.classList.remove('shaking');
+  }, 70);
+
+  setTimeout(() => { flash.style.transition = ''; }, 600);
+}
+
+/* ── ANSWER ── */
+$('submit-btn').addEventListener('click', checkAnswer);
+$('answer-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
+
+function checkAnswer() {
+  const raw = $('answer-input').value.trim();
+  if (!raw) return;
+  if (raw.replace(/\s/g, '') === '펭귄목장') {
+    stopAll();
+    play('ambient', 0.55);
+    $('correct-screen').classList.add('show');
+  } else {
+    stopAll();
+    play('bad', 0.55);
+    $('be-text').innerHTML =
+      `T는 "<span class="be-wrong">${esc(raw)}</span>"을 중얼거렸다.<br><br>` +
+      `하지만 가만히 기다려도 반응이 없었고,<br>` +
+      `철제문을 억지로 열어보려고 했으나 꿈쩍도 하지 않았다.<br><br>` +
+      `"뭐지, 왜 안 열리지?"<br><br>` +
+      `한참 문과 씨름하던 T는 결국<br>문을 열 방법을 찾지 못한 채 집으로 돌아갔다.`;
+    $('bad-ending').classList.add('show');
+  }
+}
+
+$('retry-btn').addEventListener('click', () => {
+  stopAll();
+  $('bad-ending').classList.remove('show');
+  heartbeatFired = false;
+  $('answer-input').value = '';
+  play('heartbeat', 0.35);
+  scrollWrap.scrollTo({ top: scrollWrap.scrollHeight, behavior: 'smooth' });
+  setTimeout(() => $('answer-input').focus(), 600);
+});
+
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
