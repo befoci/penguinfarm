@@ -293,69 +293,114 @@
       <!-- 평면도 -->
       <div class="blk">
         <div class="floorplan-wrap">
-          <svg viewBox="0 0 300 380" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 300 390" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- 소 인형 심볼 (낡은 봉제인형 스타일) -->
+              <symbol id="cow" viewBox="0 0 36 50" overflow="visible">
+                <!-- 뿔 -->
+                <path d="M12,10 C9,4 11,1 13,3" fill="none" stroke="#b89060" stroke-width="2" stroke-linecap="round"/>
+                <path d="M24,10 C27,4 25,1 23,3" fill="none" stroke="#b89060" stroke-width="2" stroke-linecap="round"/>
+                <!-- 귀 -->
+                <ellipse cx="7" cy="11" rx="3.5" ry="2.5" fill="#c4a07a" stroke="#8a6840" stroke-width="0.7" transform="rotate(-25,7,11)"/>
+                <ellipse cx="29" cy="11" rx="3.5" ry="2.5" fill="#c4a07a" stroke="#8a6840" stroke-width="0.7" transform="rotate(25,29,11)"/>
+                <!-- 머리 -->
+                <circle cx="18" cy="13" r="10" fill="#c9a884" stroke="#8a6840" stroke-width="1"/>
+                <!-- 눈 -->
+                <circle cx="14" cy="12" r="2.2" fill="#1a1008"/>
+                <circle cx="22" cy="12" r="2.2" fill="#1a1008"/>
+                <circle cx="14.9" cy="11.1" r="0.7" fill="#fff" opacity="0.3"/>
+                <circle cx="22.9" cy="11.1" r="0.7" fill="#fff" opacity="0.3"/>
+                <!-- 코 -->
+                <ellipse cx="18" cy="18" rx="4.5" ry="3" fill="#d09090" opacity="0.5"/>
+                <circle cx="16.3" cy="18.3" r="1" fill="#8a4848"/>
+                <circle cx="19.7" cy="18.3" r="1" fill="#8a4848"/>
+                <!-- 몸통 -->
+                <ellipse cx="18" cy="34" rx="14" ry="11" fill="#c9a884" stroke="#8a6840" stroke-width="1"/>
+                <!-- 얼룩 -->
+                <ellipse cx="11" cy="31" rx="5" ry="3.5" fill="#5a3818" opacity="0.3"/>
+                <ellipse cx="25" cy="36" rx="3.5" ry="2.5" fill="#5a3818" opacity="0.3"/>
+                <!-- 낡은 실밥 -->
+                <path d="M23,25 Q27,29 25,35" fill="none" stroke="#9a7a50" stroke-width="0.8" stroke-dasharray="2,1.5" opacity="0.4"/>
+                <!-- 다리 -->
+                <rect x="5"  y="43" width="5" height="7" rx="2.5" fill="#b89060" stroke="#8a6840" stroke-width="0.7"/>
+                <rect x="12" y="43" width="5" height="7" rx="2.5" fill="#b89060" stroke="#8a6840" stroke-width="0.7"/>
+                <rect x="19" y="43" width="5" height="7" rx="2.5" fill="#b89060" stroke="#8a6840" stroke-width="0.7"/>
+                <rect x="26" y="43" width="5" height="7" rx="2.5" fill="#b89060" stroke="#8a6840" stroke-width="0.7"/>
+              </symbol>
+
+              <!-- 소를 닮은 무언가 심볼 (어둡고 불길) -->
+              <symbol id="unknown" viewBox="0 0 36 50" overflow="visible">
+                <!-- 뒤틀린 뿔 -->
+                <path d="M12,10 C7,2 13,-2 15,2" fill="none" stroke="#2a1e10" stroke-width="2.2" stroke-linecap="round"/>
+                <path d="M24,10 C29,2 23,-2 21,2" fill="none" stroke="#2a1e10" stroke-width="2.2" stroke-linecap="round"/>
+                <!-- 머리 -->
+                <circle cx="18" cy="13" r="11" fill="#252018" stroke="#120e08" stroke-width="1"/>
+                <!-- 깊게 패인 눈 -->
+                <circle cx="14" cy="12" r="3" fill="#060504"/>
+                <circle cx="22" cy="12" r="3" fill="#060504"/>
+                <!-- 희미한 붉은 빛 -->
+                <circle cx="14" cy="11.5" r="1.2" fill="#aa1818" opacity="0.2"/>
+                <circle cx="22" cy="11.5" r="1.2" fill="#aa1818" opacity="0.2"/>
+                <!-- 꿰맨 입 -->
+                <path d="M13,19 L15,18 L17,19 L19,18 L21,19 L23,18" fill="none" stroke="#180a0a" stroke-width="1" stroke-linecap="round"/>
+                <!-- 몸통 -->
+                <ellipse cx="18" cy="34" rx="15" ry="12" fill="#252018" stroke="#120e08" stroke-width="1"/>
+                <!-- 얼룩 -->
+                <ellipse cx="10" cy="30" rx="6" ry="4" fill="#100e08" opacity="0.5"/>
+                <ellipse cx="25" cy="37" rx="4" ry="3" fill="#100e08" opacity="0.5"/>
+                <!-- 다리 -->
+                <rect x="4"  y="44" width="6" height="6" rx="3" fill="#1c1610" stroke="#0c0a06" stroke-width="0.7"/>
+                <rect x="12" y="44" width="6" height="6" rx="3" fill="#1c1610" stroke="#0c0a06" stroke-width="0.7"/>
+                <rect x="18" y="44" width="6" height="6" rx="3" fill="#1c1610" stroke="#0c0a06" stroke-width="0.7"/>
+                <rect x="25" y="44" width="6" height="6" rx="3" fill="#1c1610" stroke="#0c0a06" stroke-width="0.7"/>
+              </symbol>
+            </defs>
+
             <!-- 배경 -->
-            <rect width="300" height="380" fill="#050505"/>
-
+            <rect width="300" height="390" fill="#050505"/>
             <!-- 외곽선 -->
-            <rect x="1" y="1" width="298" height="378" fill="none" stroke="#2a0808" stroke-width="2"/>
-
+            <rect x="1" y="1" width="298" height="388" fill="none" stroke="#2a0808" stroke-width="2"/>
             <!-- 세로 중간 구분선 -->
-            <line x1="165" y1="0" x2="165" y2="380" stroke="#2a0808" stroke-width="1.5"/>
-
+            <line x1="165" y1="0" x2="165" y2="390" stroke="#2a0808" stroke-width="1.5"/>
             <!-- 왼쪽 칸막이 -->
-            <line x1="1" y1="95"  x2="165" y2="95"  stroke="#1a0606" stroke-width="1"/>
-            <line x1="1" y1="190" x2="165" y2="190" stroke="#1a0606" stroke-width="1"/>
-            <line x1="1" y1="285" x2="165" y2="285" stroke="#1a0606" stroke-width="1"/>
-
+            <line x1="1"   y1="97"  x2="165" y2="97"  stroke="#1a0606" stroke-width="1"/>
+            <line x1="1"   y1="194" x2="165" y2="194" stroke="#1a0606" stroke-width="1"/>
+            <line x1="1"   y1="291" x2="165" y2="291" stroke="#1a0606" stroke-width="1"/>
             <!-- 오른쪽 칸막이 -->
-            <line x1="165" y1="115" x2="299" y2="115" stroke="#1a0606" stroke-width="1"/>
-            <line x1="165" y1="200" x2="299" y2="200" stroke="#1a0606" stroke-width="1"/>
-            <line x1="165" y1="295" x2="299" y2="295" stroke="#1a0606" stroke-width="1"/>
+            <line x1="165" y1="118" x2="299" y2="118" stroke="#1a0606" stroke-width="1"/>
+            <line x1="165" y1="205" x2="299" y2="205" stroke="#1a0606" stroke-width="1"/>
+            <line x1="165" y1="300" x2="299" y2="300" stroke="#1a0606" stroke-width="1"/>
 
             <!-- 오른쪽 상단: 빈공간 -->
-            <text x="232" y="52" text-anchor="middle" fill="#2a2a2a" font-size="11" font-family="serif">빈 공간</text>
-            <text x="232" y="70" text-anchor="middle" fill="#222222" font-size="9" font-family="serif">(출입구)</text>
+            <text x="232" y="52"  text-anchor="middle" fill="#2a2a2a" font-size="11" font-family="serif">빈 공간</text>
+            <text x="232" y="68"  text-anchor="middle" fill="#1e1e1e" font-size="9"  font-family="serif">(출입구)</text>
 
             <!-- 왼쪽 1칸: 소 2마리 -->
-            <ellipse cx="48"  cy="48" rx="28" ry="20" fill="#150505" stroke="#660000" stroke-width="1.2"/>
-            <text x="48"  y="53" text-anchor="middle" fill="#cc3333" font-size="12" font-family="serif">소</text>
-            <ellipse cx="118" cy="48" rx="28" ry="20" fill="#150505" stroke="#660000" stroke-width="1.2"/>
-            <text x="118" y="53" text-anchor="middle" fill="#cc3333" font-size="12" font-family="serif">소</text>
+            <use href="#cow" x="17"  y="24" width="30" height="42"/>
+            <use href="#cow" x="88"  y="24" width="30" height="42"/>
 
             <!-- 왼쪽 2칸: 소를 닮은 무언가 (대형) -->
-            <ellipse cx="83" cy="143" rx="58" ry="30" fill="#0d0d0d" stroke="#252525" stroke-width="1.2"/>
-            <text x="83" y="148" text-anchor="middle" fill="#3a3a3a" font-size="10" font-family="serif">소를 닮은 무언가</text>
+            <use href="#unknown" x="54" y="108" width="54" height="75"/>
 
             <!-- 왼쪽 3칸: 소 + 무언가 -->
-            <ellipse cx="44"  cy="238" rx="30" ry="22" fill="#150505" stroke="#660000" stroke-width="1.2"/>
-            <text x="44"  y="243" text-anchor="middle" fill="#cc3333" font-size="12" font-family="serif">소</text>
-            <ellipse cx="120" cy="238" rx="32" ry="22" fill="#0d0d0d" stroke="#252525" stroke-width="1.2"/>
-            <text x="120" y="243" text-anchor="middle" fill="#3a3a3a" font-size="10" font-family="serif">무언가</text>
+            <use href="#cow"     x="14"  y="218" width="28" height="39"/>
+            <use href="#unknown" x="88"  y="215" width="28" height="39"/>
 
             <!-- 왼쪽 4칸: 무언가 + 소 -->
-            <ellipse cx="100" cy="310" rx="34" ry="24" fill="#0d0d0d" stroke="#252525" stroke-width="1.2"/>
-            <text x="100" y="315" text-anchor="middle" fill="#3a3a3a" font-size="10" font-family="serif">무언가</text>
-            <ellipse cx="44"  cy="350" rx="26" ry="19" fill="#150505" stroke="#660000" stroke-width="1.2"/>
-            <text x="44"  y="355" text-anchor="middle" fill="#cc3333" font-size="12" font-family="serif">소</text>
+            <use href="#unknown" x="68"  y="298" width="32" height="45"/>
+            <use href="#cow"     x="16"  y="337" width="26" height="36"/>
 
             <!-- 오른쪽 1칸: 소 + 무언가 -->
-            <ellipse cx="196" cy="153" rx="24" ry="18" fill="#150505" stroke="#660000" stroke-width="1.2"/>
-            <text x="196" y="158" text-anchor="middle" fill="#cc3333" font-size="12" font-family="serif">소</text>
-            <ellipse cx="254" cy="160" rx="26" ry="20" fill="#0d0d0d" stroke="#252525" stroke-width="1.2"/>
-            <text x="254" y="165" text-anchor="middle" fill="#3a3a3a" font-size="10" font-family="serif">무언가</text>
+            <use href="#cow"     x="168" y="130" width="26" height="36"/>
+            <use href="#unknown" x="228" y="134" width="26" height="36"/>
 
             <!-- 오른쪽 2칸: 소 3마리 -->
-            <ellipse cx="192" cy="222" rx="24" ry="18" fill="#150505" stroke="#660000" stroke-width="1.2"/>
-            <text x="192" y="227" text-anchor="middle" fill="#cc3333" font-size="12" font-family="serif">소</text>
-            <ellipse cx="252" cy="216" rx="24" ry="18" fill="#150505" stroke="#660000" stroke-width="1.2"/>
-            <text x="252" y="221" text-anchor="middle" fill="#cc3333" font-size="12" font-family="serif">소</text>
-            <ellipse cx="222" cy="265" rx="24" ry="18" fill="#150505" stroke="#660000" stroke-width="1.2"/>
-            <text x="222" y="270" text-anchor="middle" fill="#cc3333" font-size="12" font-family="serif">소</text>
+            <use href="#cow" x="166" y="208" width="26" height="36"/>
+            <use href="#cow" x="228" y="204" width="26" height="36"/>
+            <use href="#cow" x="196" y="250" width="26" height="36"/>
 
-            <!-- 오른쪽 3칸: 무언가 -->
-            <ellipse cx="232" cy="335" rx="40" ry="28" fill="#0d0d0d" stroke="#252525" stroke-width="1.2"/>
-            <text x="232" y="340" text-anchor="middle" fill="#3a3a3a" font-size="10" font-family="serif">무언가</text>
+            <!-- 오른쪽 3칸: 무언가 (대형) -->
+            <use href="#unknown" x="202" y="308" width="42" height="58"/>
           </svg>
         </div>
       </div>
