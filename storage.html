@@ -435,8 +435,6 @@
   <!-- 정답 화면 -->
   <div class="overlay" id="correct-screen">
     <div class="correct-line">지하로 이어지는 문이 열렸다.</div>
-    <div class="correct-sep"></div>
-    <div class="correct-next">3# 지하통로 — 준비 중</div>
   </div>
 
 </div>
@@ -520,6 +518,7 @@ function checkAnswer() {
     stopAll();
     play('ambient', 0.5);
     $('correct-screen').classList.add('show');
+    setTimeout(() => { window.location.href = 'tunnel.html'; }, 2200);
   } else {
     $('wrong-popup').classList.add('show');
   }
