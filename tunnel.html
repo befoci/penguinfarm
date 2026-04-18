@@ -94,27 +94,20 @@
     .corridor-light { animation: corridor-light-flicker 3.5s ease-in-out infinite; }
 
     /* 발소리 [툭] 효과 */
-    .tuk-blk { text-align: center; margin: 16px 0; }
-    .tuk-row { display: flex; align-items: center; justify-content: center; gap: 24px; }
+    .tuk-blk { margin: 16px 0; }
+    .tuk-row { display: flex; flex-direction: column; gap: 14px; }
     .tuk {
       font-size: 26px; font-weight: 700;
       color: #555555; letter-spacing: 4px;
       opacity: 0; display: inline-block;
     }
-    .tuk-dots {
-      font-size: 13px; letter-spacing: 6px;
-      color: #2a2a2a; opacity: 0;
-    }
-    .tuk-blk.in .tuk:nth-child(1) { animation: tuk-beat 0.25s 0.3s forwards; }
-    .tuk-blk.in .tuk-dots         { animation: tuk-fade 0.4s 0.9s forwards; }
-    .tuk-blk.in .tuk:last-child   { animation: tuk-beat 0.25s 1.5s forwards; }
+    .tuk.tuk-right { align-self: flex-end; }
+    .tuk-blk.in .tuk:first-child { animation: tuk-beat 0.25s 0.3s forwards; }
+    .tuk-blk.in .tuk:last-child  { animation: tuk-beat 0.25s 1.5s forwards; }
     @keyframes tuk-beat {
       0%   { opacity: 0; transform: scale(0.85); }
       50%  { opacity: 1; transform: scale(1.08); }
       100% { opacity: 0.65; transform: scale(1); }
-    }
-    @keyframes tuk-fade {
-      from { opacity: 0; } to { opacity: 0.5; }
     }
 
     /* 지직 효과 */
@@ -394,8 +387,7 @@
       <div class="blk tuk-blk">
         <div class="tuk-row">
           <span class="tuk">[툭]</span>
-          <span class="tuk-dots">…</span>
-          <span class="tuk">[툭]</span>
+          <span class="tuk tuk-right">[툭]</span>
         </div>
       </div>
 
@@ -425,8 +417,7 @@
       <div class="blk tuk-blk">
         <div class="tuk-row">
           <span class="tuk">[툭]</span>
-          <span class="tuk-dots">…</span>
-          <span class="tuk">[툭]</span>
+          <span class="tuk tuk-right">[툭]</span>
         </div>
       </div>
 
