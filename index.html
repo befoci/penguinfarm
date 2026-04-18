@@ -603,14 +603,14 @@ function observeAll() {
 
   document.querySelectorAll('.blk, .sep, #question-section').forEach(el => obs.observe(el));
 
-  // 쾅 — 요소가 50% 올라왔을 때 발동
+  // 쾅 — 요소가 75% 올라왔을 때 발동 (더 위에서 터지도록)
   const bangObs = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (!e.isIntersecting || bangFired) return;
       bangFired = true;
       triggerBang();
     });
-  }, { threshold: 0.5 });
+  }, { threshold: 0.75 });
 
   bangObs.observe($('bang-trigger'));
 }
@@ -621,10 +621,15 @@ function triggerBang() {
 
   const flash = $('flash');
   const shakeLayer = $('shake-layer');
+  const sw = scrollWrap;
+  const savedTop = sw.scrollTop;   // 스크롤 위치 저장
 
   flash.style.transition = 'none';
   flash.style.background = 'rgba(255,255,255,0.95)';
   shakeLayer.classList.add('shaking');
+
+  // 다음 프레임에서 스크롤 위치 복원 (jump 방지)
+  requestAnimationFrame(() => { sw.scrollTop = savedTop; });
 
   setTimeout(() => {
     flash.style.transition = 'background 0.5s ease';
@@ -669,7 +674,6 @@ $('retry-btn').addEventListener('click', () => {
   $('answer-input').value = '';
   play('heartbeat', 0.35);
   scrollWrap.scrollTo({ top: scrollWrap.scrollHeight, behavior: 'smooth' });
-  setTimeout(() => $('answer-input').focus(), 600);
 });
 
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
