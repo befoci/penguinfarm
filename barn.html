@@ -135,6 +135,15 @@
     }
     .overlay.show { opacity: 1; pointer-events: auto; }
 
+    /* 배드엔딩은 위에서부터 + 스크롤 가능 */
+    #bad-ending {
+      justify-content: flex-start;
+      padding-top: 72px;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    #bad-ending::-webkit-scrollbar { display: none; }
+
     .be-tag { font-size: 9px; letter-spacing: 7px; color: #666666; margin-bottom: 40px; }
     .be-text { font-size: 14px; line-height: 2.4; color: #aaaaaa; margin-bottom: 36px; }
     .be-wrong { color: #cc0000; font-weight: 600; text-shadow: 0 0 8px rgba(204,0,0,0.3); }
@@ -328,31 +337,37 @@
                 <rect x="26" y="43" width="5" height="7" rx="2.5" fill="#b89060" stroke="#8a6840" stroke-width="0.7"/>
               </symbol>
 
-              <!-- 소를 닮은 무언가 심볼 (어둡고 불길) -->
+              <!-- 소를 닮은 무언가 심볼 (소 모양, 눈만 어둡고 불길) -->
               <symbol id="unknown" viewBox="0 0 36 50" overflow="visible">
-                <!-- 뒤틀린 뿔 -->
-                <path d="M12,10 C7,2 13,-2 15,2" fill="none" stroke="#2a1e10" stroke-width="2.2" stroke-linecap="round"/>
-                <path d="M24,10 C29,2 23,-2 21,2" fill="none" stroke="#2a1e10" stroke-width="2.2" stroke-linecap="round"/>
-                <!-- 머리 -->
-                <circle cx="18" cy="13" r="11" fill="#3a1212" stroke="#6a2020" stroke-width="1"/>
-                <!-- 깊게 패인 눈 -->
+                <!-- 뿔 (소와 동일) -->
+                <path d="M12,10 C9,4 11,1 13,3" fill="none" stroke="#b89060" stroke-width="2" stroke-linecap="round"/>
+                <path d="M24,10 C27,4 25,1 23,3" fill="none" stroke="#b89060" stroke-width="2" stroke-linecap="round"/>
+                <!-- 귀 (소와 동일) -->
+                <ellipse cx="7" cy="11" rx="3.5" ry="2.5" fill="#c4a07a" stroke="#8a6840" stroke-width="0.7" transform="rotate(-25,7,11)"/>
+                <ellipse cx="29" cy="11" rx="3.5" ry="2.5" fill="#c4a07a" stroke="#8a6840" stroke-width="0.7" transform="rotate(25,29,11)"/>
+                <!-- 머리 (소와 동일) -->
+                <circle cx="18" cy="13" r="10" fill="#c9a884" stroke="#8a6840" stroke-width="1"/>
+                <!-- 눈 (무언가 스타일 유지: 깊게 패인 눈 + 붉은 빛) -->
                 <circle cx="14" cy="12" r="3" fill="#0a0404"/>
                 <circle cx="22" cy="12" r="3" fill="#0a0404"/>
-                <!-- 붉은 빛 -->
                 <circle cx="14" cy="11.5" r="1.2" fill="#cc2222" opacity="0.35"/>
                 <circle cx="22" cy="11.5" r="1.2" fill="#cc2222" opacity="0.35"/>
-                <!-- 꿰맨 입 -->
-                <path d="M13,19 L15,18 L17,19 L19,18 L21,19 L23,18" fill="none" stroke="#180a0a" stroke-width="1" stroke-linecap="round"/>
-                <!-- 몸통 -->
-                <ellipse cx="18" cy="34" rx="15" ry="12" fill="#3a1212" stroke="#6a2020" stroke-width="1"/>
+                <!-- 코 (소와 동일) -->
+                <ellipse cx="18" cy="18" rx="4.5" ry="3" fill="#d09090" opacity="0.5"/>
+                <circle cx="16.3" cy="18.3" r="1" fill="#8a4848"/>
+                <circle cx="19.7" cy="18.3" r="1" fill="#8a4848"/>
+                <!-- 몸통 (소와 동일) -->
+                <ellipse cx="18" cy="34" rx="14" ry="11" fill="#c9a884" stroke="#8a6840" stroke-width="1"/>
                 <!-- 얼룩 -->
-                <ellipse cx="10" cy="30" rx="6" ry="4" fill="#220808" opacity="0.7"/>
-                <ellipse cx="25" cy="37" rx="4" ry="3" fill="#220808" opacity="0.7"/>
-                <!-- 다리 -->
-                <rect x="4"  y="44" width="6" height="6" rx="3" fill="#2e0e0e" stroke="#5a1818" stroke-width="0.7"/>
-                <rect x="12" y="44" width="6" height="6" rx="3" fill="#2e0e0e" stroke="#5a1818" stroke-width="0.7"/>
-                <rect x="18" y="44" width="6" height="6" rx="3" fill="#2e0e0e" stroke="#5a1818" stroke-width="0.7"/>
-                <rect x="25" y="44" width="6" height="6" rx="3" fill="#2e0e0e" stroke="#5a1818" stroke-width="0.7"/>
+                <ellipse cx="11" cy="31" rx="5" ry="3.5" fill="#5a3818" opacity="0.3"/>
+                <ellipse cx="25" cy="36" rx="3.5" ry="2.5" fill="#5a3818" opacity="0.3"/>
+                <!-- 낡은 실밥 -->
+                <path d="M23,25 Q27,29 25,35" fill="none" stroke="#9a7a50" stroke-width="0.8" stroke-dasharray="2,1.5" opacity="0.4"/>
+                <!-- 다리 (소와 동일) -->
+                <rect x="5"  y="43" width="5" height="7" rx="2.5" fill="#b89060" stroke="#8a6840" stroke-width="0.7"/>
+                <rect x="12" y="43" width="5" height="7" rx="2.5" fill="#b89060" stroke="#8a6840" stroke-width="0.7"/>
+                <rect x="19" y="43" width="5" height="7" rx="2.5" fill="#b89060" stroke="#8a6840" stroke-width="0.7"/>
+                <rect x="26" y="43" width="5" height="7" rx="2.5" fill="#b89060" stroke="#8a6840" stroke-width="0.7"/>
               </symbol>
             </defs>
 
