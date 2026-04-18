@@ -148,8 +148,8 @@
     }
     #mg-canvas {
       display: block;
-      width: min(372px, calc(100vw - 32px));
-      height: min(252px, calc((100vw - 32px) * 252 / 372));
+      width: min(350px, calc(100vw - 32px));
+      height: min(238px, calc((100vw - 32px) * 238 / 350));
       image-rendering: pixelated;
     }
 
@@ -496,7 +496,7 @@
     </div>
 
     <div id="mg-canvas-wrap">
-      <canvas id="mg-canvas" width="372" height="252"></canvas>
+      <canvas id="mg-canvas" width="350" height="238"></canvas>
     </div>
 
     <div id="mg-message"></div>
@@ -639,7 +639,7 @@ bangObs2.observe($('bang-trigger-2'));
 /* ══════════════════════════════
    미니게임
 ══════════════════════════════ */
-const COLS = 31, ROWS = 21, CS = 12;
+const COLS = 25, ROWS = 17, CS = 14;
 const W_CELL = 1, PATH = 0, SACK = 2, DRAIN = 3;
 
 /* ── 맵 랜덤 생성 ── */
