@@ -699,7 +699,7 @@ function generateMaze() {
     }
   }
   shuffle(rooms);
-  const sackPositions = rooms.slice(0, 10);
+  const sackPositions = rooms.slice(0, 8);
   sackPositions.forEach(([x, y]) => { grid[y][x] = SACK; });
 
   return { grid, sackPositions };
