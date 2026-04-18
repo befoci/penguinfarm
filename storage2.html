@@ -148,8 +148,8 @@
     }
     #mg-canvas {
       display: block;
-      width: min(330px, calc(100vw - 32px));
-      height: min(270px, calc((100vw - 32px) * 270 / 330));
+      width: min(372px, calc(100vw - 32px));
+      height: min(252px, calc((100vw - 32px) * 252 / 372));
       image-rendering: pixelated;
     }
 
@@ -286,12 +286,30 @@
       32%{transform:translate(10px,-5px)} 48%{transform:translate(-7px,4px)}
       64%{transform:translate(7px,-3px)} 80%{transform:translate(-4px,2px)}
     }
+
+    /* ── 음소거 버튼 ── */
+    #mute-btn {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 34px; height: 34px;
+      background: rgba(0,0,0,0.55);
+      border: 1px solid #2a2a2a;
+      border-radius: 50%;
+      color: #555555; font-size: 15px;
+      cursor: pointer; z-index: 550;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.2s, border-color 0.2s;
+      -webkit-user-select: none; user-select: none;
+    }
+    #mute-btn:hover { color: #999999; border-color: #555555; }
+    #mute-btn.muted { color: #333333; border-color: #1e1e1e; }
   </style>
 </head>
 <body>
 <div id="game">
   <div id="flash"></div>
   <div id="shake-layer"></div>
+  <button id="mute-btn" aria-label="음소거">🔊</button>
 
   <!-- ── 스토리 스크롤 ── -->
   <div id="scroll-wrap">
@@ -478,7 +496,7 @@
     </div>
 
     <div id="mg-canvas-wrap">
-      <canvas id="mg-canvas" width="330" height="270"></canvas>
+      <canvas id="mg-canvas" width="372" height="252"></canvas>
     </div>
 
     <div id="mg-message"></div>
@@ -557,6 +575,15 @@ const AUD = { ambient: $('aud-ambient'), heartbeat: $('aud-heartbeat'), bad: $('
 function play(k, v = 0.6) { const a = AUD[k]; if (!a) return; a.volume = v; a.currentTime = 0; a.play().catch(() => {}); }
 function stopAll() { Object.values(AUD).forEach(a => { a.pause(); a.currentTime = 0; }); }
 
+/* ── 음소거 버튼 ── */
+let isMuted = false;
+$('mute-btn').addEventListener('click', () => {
+  isMuted = !isMuted;
+  Object.values(AUD).forEach(a => { a.muted = isMuted; });
+  $('mute-btn').textContent = isMuted ? '🔇' : '🔊';
+  $('mute-btn').classList.toggle('muted', isMuted);
+});
+
 /* ── Ambient on scroll ── */
 let ambientStarted = false;
 $('scroll-wrap').addEventListener('scroll', () => {
@@ -612,22 +639,71 @@ bangObs2.observe($('bang-trigger-2'));
 /* ══════════════════════════════
    미니게임
 ══════════════════════════════ */
-const COLS = 11, ROWS = 9, CS = 30;
+const COLS = 31, ROWS = 21, CS = 12;
 const W_CELL = 1, PATH = 0, SACK = 2, DRAIN = 3;
 
-const BASE_GRID = [
-  [1,1,1,1,1,1,1,1,1,1,1],
-  [1,0,0,0,2,0,0,0,2,2,1],
-  [1,0,1,1,0,1,0,1,0,1,1],
-  [1,2,0,2,0,1,0,0,0,2,1],
-  [1,1,1,0,1,1,1,0,1,0,1],
-  [1,0,0,0,2,0,0,0,0,2,1],
-  [1,0,1,1,0,1,1,1,1,0,1],
-  [1,2,0,0,0,0,2,0,0,3,1],
-  [1,1,1,1,1,1,1,1,1,1,1],
-];
-/* 자루 위치 (10개) */
-const SACK_POS = [[4,1],[8,1],[9,1],[3,3],[1,3],[9,3],[4,5],[9,5],[6,7],[1,7]];
+/* ── 맵 랜덤 생성 ── */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function generateMaze() {
+  /* 짝수 크기 → 실제 방 격자: (COLS-1)/2 × (ROWS-1)/2
+     방 좌표 (rc, rr) → 셀 (rc*2+1, rr*2+1) */
+  const rC = Math.floor(COLS / 2); // 15
+  const rR = Math.floor(ROWS / 2); // 11
+
+  const grid = Array.from({ length: ROWS }, () => Array(COLS).fill(W_CELL));
+  const visited = Array.from({ length: rR }, () => Array(rC).fill(false));
+
+  /* 재귀 백트래커 */
+  function carve(rc, rr) {
+    visited[rr][rc] = true;
+    grid[rr * 2 + 1][rc * 2 + 1] = PATH;
+    const dirs = shuffle([[0,-1],[0,1],[-1,0],[1,0]]);
+    for (const [dc, dr] of dirs) {
+      const nrc = rc + dc, nrr = rr + dr;
+      if (nrc < 0 || nrc >= rC || nrr < 0 || nrr >= rR) continue;
+      if (visited[nrr][nrc]) continue;
+      grid[rr * 2 + 1 + dr][rc * 2 + 1 + dc] = PATH;
+      carve(nrc, nrr);
+    }
+  }
+  carve(0, 0);
+
+  /* 추가 루프: 막힌 느낌 줄이기 (~25% 여분 통로) */
+  const extra = Math.floor(rC * rR * 0.25);
+  for (let i = 0; i < extra; i++) {
+    const rc = Math.floor(Math.random() * (rC - 1));
+    const rr = Math.floor(Math.random() * (rR - 1));
+    const dc = Math.random() < 0.5 ? 1 : 0;
+    const dr = dc === 0 ? 1 : 0;
+    grid[rr * 2 + 1 + dr][rc * 2 + 1 + dc] = PATH;
+  }
+
+  /* 하수구: 우하단 방 */
+  const dX = (rC - 1) * 2 + 1, dY = (rR - 1) * 2 + 1;
+  grid[dY][dX] = DRAIN;
+
+  /* 자루: 시작(0,0)·하수구 제외 전체 방 중 10개 랜덤 */
+  const rooms = [];
+  for (let rr = 0; rr < rR; rr++) {
+    for (let rc = 0; rc < rC; rc++) {
+      if (rc === 0 && rr === 0) continue;
+      if (rc === rC - 1 && rr === rR - 1) continue;
+      rooms.push([rc * 2 + 1, rr * 2 + 1]);
+    }
+  }
+  shuffle(rooms);
+  const sackPositions = rooms.slice(0, 10);
+  sackPositions.forEach(([x, y]) => { grid[y][x] = SACK; });
+
+  return { grid, sackPositions };
+}
 
 const mg = {
   canvas: $('mg-canvas'),
@@ -637,7 +713,7 @@ const mg = {
   hasLever: false,
   leverPos: null,
   openedSacks: new Set(),
-  timer: 25,
+  timer: 40,
   timerRaf: null,
   timerStart: null,
   moveInterval: null,
@@ -647,16 +723,16 @@ const mg = {
 mg.ctx = mg.canvas.getContext('2d');
 
 function mgInit() {
-  /* 그리드 복사 */
-  mg.grid = BASE_GRID.map(row => [...row]);
+  const { grid, sackPositions } = generateMaze();
+  mg.grid = grid;
   mg.player = { x: 1, y: 1 };
   mg.hasLever = false;
   mg.openedSacks = new Set();
-  mg.timer = 25;
+  mg.timer = 40;
 
   /* 레버 랜덤 배치 */
-  const idx = Math.floor(Math.random() * SACK_POS.length);
-  mg.leverPos = SACK_POS[idx];
+  const idx = Math.floor(Math.random() * sackPositions.length);
+  mg.leverPos = sackPositions[idx];
 
   /* 타이머 바 초기화 */
   const bar = $('mg-timer-bar');
@@ -700,7 +776,7 @@ function mgDraw() {
 
   /* 플레이어 */
   const t = Date.now() / 1000;
-  const pr = 7 + Math.sin(t * 4) * 0.8;
+  const pr = (CS / 2 - 2) + Math.sin(t * 4) * 0.5;
   const px = mg.player.x * CS + CS / 2;
   const py = mg.player.y * CS + CS / 2;
   ctx.beginPath();
@@ -708,35 +784,35 @@ function mgDraw() {
   ctx.fillStyle = '#cc1111';
   ctx.fill();
   ctx.strokeStyle = '#ff4444';
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 1;
   ctx.stroke();
 }
 
 function drawSack(ctx, x, y, opened) {
+  const p = 2;
   if (opened) {
-    ctx.fillStyle = '#1e0606'; ctx.fillRect(x + 5, y + 9, CS - 10, CS - 11);
-    ctx.strokeStyle = '#2e0808'; ctx.lineWidth = 1;
-    ctx.strokeRect(x + 5, y + 9, CS - 10, CS - 11);
-    ctx.fillStyle = '#0e0303'; ctx.fillRect(x + 8, y + 14, CS - 16, 4);
+    ctx.fillStyle = '#2a0808';
+    ctx.fillRect(x + p, y + p + 1, CS - p * 2, CS - p * 2 - 1);
+    ctx.strokeStyle = '#3a0a0a'; ctx.lineWidth = 1;
+    ctx.strokeRect(x + p + 0.5, y + p + 1.5, CS - p * 2 - 1, CS - p * 2 - 2);
   } else {
-    ctx.fillStyle = '#1c0505'; ctx.fillRect(x + 5, y + 7, CS - 10, CS - 9);
-    ctx.fillStyle = '#240808'; ctx.fillRect(x + 11, y + 6, CS - 22, 4);
+    ctx.fillStyle = '#1c0505';
+    ctx.fillRect(x + p, y + p + 1, CS - p * 2, CS - p * 2 - 1);
+    ctx.fillStyle = '#300909';
+    ctx.fillRect(x + p + 1, y + p - 1, CS - p * 2 - 2, 3);
     ctx.strokeStyle = '#2a0707'; ctx.lineWidth = 1;
-    ctx.strokeRect(x + 5, y + 7, CS - 10, CS - 9);
+    ctx.strokeRect(x + p + 0.5, y + p + 1.5, CS - p * 2 - 1, CS - p * 2 - 2);
   }
 }
 
 function drawDrain(ctx, x, y) {
-  const cx = x + CS / 2, cy = y + CS / 2, r = CS / 2 - 5;
-  const col = mg.hasLever ? '#666600' : '#1e1e1e';
+  const cx = x + CS / 2, cy = y + CS / 2, r = CS / 2 - 2;
+  const col = mg.hasLever ? '#999900' : '#2e2e2e';
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke();
-  ctx.strokeStyle = mg.hasLever ? '#444400' : '#141414';
+  ctx.strokeStyle = mg.hasLever ? '#777700' : '#1e1e1e';
   ctx.lineWidth = 1;
-  [[cx - r, cy, cx + r, cy], [cx, cy - r, cx, cy + r],
-   [cx - r * 0.7, cy - r * 0.7, cx + r * 0.7, cy + r * 0.7],
-   [cx + r * 0.7, cy - r * 0.7, cx - r * 0.7, cy + r * 0.7]
-  ].forEach(([x1, y1, x2, y2]) => {
+  [[cx - r, cy, cx + r, cy], [cx, cy - r, cx, cy + r]].forEach(([x1, y1, x2, y2]) => {
     ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
   });
 }
@@ -825,18 +901,35 @@ function mgFail() {
   stopAll();
   play('bad', 0.75);
 
+  /* 배드엔딩 배경 즉시 표시 → 스토리 내용 차단 */
+  const be = $('bad-ending');
+  be.style.transition = 'none';
+  be.classList.add('show');
+  be.scrollTop = 0;
+
   /* 미니게임 즉시 숨김 */
   $('minigame-overlay').classList.remove('show');
 
+  /* 빨간 플래시 */
   const flash = $('flash');
   flash.style.transition = 'background 0.1s';
   flash.style.background = 'rgba(180,0,0,0.8)';
   setTimeout(() => { flash.style.transition = 'background 1.2s'; flash.style.background = 'rgba(0,0,0,0)'; }, 200);
   setTimeout(() => { flash.style.transition = ''; }, 1450);
 
+  /* 플래시가 끝난 후 텍스트 순차 등장 */
   setTimeout(() => {
-    triggerBadEnding();
-  }, 350);
+    be.style.transition = '';
+    const lines = be.querySelectorAll('.be-line');
+    lines.forEach((line, i) => {
+      setTimeout(() => {
+        line.style.opacity = '';
+        line.style.animation = 'be-appear 0.5s forwards';
+      }, i * 750);
+    });
+    const totalDelay = lines.length * 750 + 1200;
+    setTimeout(() => $('retry-btn').classList.add('show'), totalDelay);
+  }, 1600);
 }
 
 /* ── 게임 시작 ── */

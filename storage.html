@@ -193,12 +193,27 @@
       40%{transform:translate(7px,-3px)} 50%{transform:translate(-5px,4px)}
       60%{transform:translate(5px,-2px)} 70%{transform:translate(-3px,1px)} 80%{transform:translate(3px,-1px)}
     }
+
+    /* ── 음소거 버튼 ── */
+    #mute-btn {
+      position: absolute; top: 14px; right: 14px;
+      width: 34px; height: 34px;
+      background: rgba(0,0,0,0.55); border: 1px solid #2a2a2a;
+      border-radius: 50%; color: #555555; font-size: 15px;
+      cursor: pointer; z-index: 550;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.2s, border-color 0.2s;
+      -webkit-user-select: none; user-select: none;
+    }
+    #mute-btn:hover { color: #999999; border-color: #555555; }
+    #mute-btn.muted { color: #333333; border-color: #1e1e1e; }
   </style>
 </head>
 <body>
 <div id="game">
   <div id="flash"></div>
   <div id="shake-layer"></div>
+  <button id="mute-btn" aria-label="음소거">🔊</button>
 
   <div id="scroll-wrap">
     <div class="story">
@@ -448,6 +463,15 @@ const $ = id => document.getElementById(id);
 const AUD = { ambient: $('aud-ambient'), heartbeat: $('aud-heartbeat') };
 function play(k,v=0.6){ const a=AUD[k]; if(!a)return; a.volume=v; a.currentTime=0; a.play().catch(()=>{}); }
 function stopAll(){ Object.values(AUD).forEach(a=>{ a.pause(); a.currentTime=0; }); }
+
+/* ── 음소거 버튼 ── */
+let isMuted = false;
+$('mute-btn').addEventListener('click', () => {
+  isMuted = !isMuted;
+  Object.values(AUD).forEach(a => { a.muted = isMuted; });
+  $('mute-btn').textContent = isMuted ? '🔇' : '🔊';
+  $('mute-btn').classList.toggle('muted', isMuted);
+});
 
 /* 첫 스크롤 시 ambient 시작 */
 let ambientStarted = false;
