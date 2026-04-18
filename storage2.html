@@ -890,10 +890,13 @@ function mgMsg(text, good) {
 function mgSuccess() {
   mg.running = false;
   stopAll();
-  setTimeout(() => {
-    $('minigame-overlay').classList.remove('show');
-    $('correct-screen').classList.add('show');
-  }, 500);
+  /* 정답화면 배경 즉시 표시 → 스토리 내용 차단 */
+  const cs = $('correct-screen');
+  cs.style.transition = 'none';
+  cs.classList.add('show');
+  $('minigame-overlay').classList.remove('show');
+  /* 짧은 딜레이 후 페이드인 전환 복원 */
+  setTimeout(() => { cs.style.transition = ''; }, 50);
 }
 
 function mgFail() {
