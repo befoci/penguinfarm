@@ -443,12 +443,11 @@
 
 <audio id="aud-ambient"   src="ambient.mp3"   loop preload="auto"></audio>
 <audio id="aud-heartbeat" src="heartbeat.mp3" loop preload="auto"></audio>
-<audio id="aud-door"      src="Metal_Door.mp3"     preload="auto"></audio>
 
 <script>
 const $ = id => document.getElementById(id);
 
-const AUD = { ambient: $('aud-ambient'), heartbeat: $('aud-heartbeat'), door: $('aud-door') };
+const AUD = { ambient: $('aud-ambient'), heartbeat: $('aud-heartbeat') };
 function play(k,v=0.6){ const a=AUD[k]; if(!a)return; a.volume=v; a.currentTime=0; a.play().catch(()=>{}); }
 function stopAll(){ Object.values(AUD).forEach(a=>{ a.pause(); a.currentTime=0; }); }
 
