@@ -497,25 +497,24 @@ function triggerBang() {
   play('door', 1.0);
 
   const flash = $('flash');
-  const shakeLayer = $('shake-layer');
   const sw = $('scroll-wrap');
   const savedTop = sw.scrollTop;
 
-  flash.style.transition = 'none';
-  flash.style.background = 'rgba(255,255,255,0.95)';
-  shakeLayer.classList.add('shaking');
+  /* 흰 플래시 대신 암전 — 갇히는 순간 빛이 사라지는 느낌 */
+  flash.style.transition = 'background 0.15s ease';
+  flash.style.background = 'rgba(0,0,0,0.97)';
 
   requestAnimationFrame(() => { sw.scrollTop = savedTop; });
 
+  /* 0.6초 암전 유지 후 천천히 복귀 */
   setTimeout(() => {
-    flash.style.transition = 'background 0.5s ease';
-    flash.style.background = 'rgba(255,255,255,0)';
-  }, 70);
+    flash.style.transition = 'background 1.0s ease';
+    flash.style.background = 'rgba(0,0,0,0)';
+  }, 600);
 
   setTimeout(() => {
     flash.style.transition = '';
-    shakeLayer.classList.remove('shaking');
-  }, 620);
+  }, 1650);
 }
 
 /* 정답 확인 */
