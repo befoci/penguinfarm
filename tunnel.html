@@ -520,8 +520,6 @@
   <!-- 정답 화면 -->
   <div class="overlay" id="correct-screen">
     <div class="correct-line">이어지는 문이 열렸다.</div>
-    <div class="correct-sep"></div>
-    <div class="correct-next">4# 축사2 — 준비 중</div>
   </div>
 
 </div>
@@ -579,6 +577,7 @@ function checkAnswer() {
     stopAll();
     play('ambient', 0.5);
     $('correct-screen').classList.add('show');
+    setTimeout(() => { window.location.href = 'barn2.html'; }, 2200);
   } else {
     triggerBadEnding(raw);
   }

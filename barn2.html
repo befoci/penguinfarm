@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>펭귄 농장 — 4# 축사2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Maru+Buri:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; background: #000; -webkit-tap-highlight-color: transparent; }
+
+    #game {
+      position: relative;
+      width: 100%; max-width: 480px; height: 100dvh;
+      margin: 0 auto; background: #000;
+      font-family: 'Maru Buri', 'Nanum Myeongjo', serif;
+      overflow: hidden;
+    }
+    #game::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px);
+      pointer-events: none; z-index: 500;
+    }
+    #game::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+      pointer-events: none; z-index: 499;
+    }
+
+    #flash { position: absolute; inset: 0; background: rgba(255,255,255,0); pointer-events: none; z-index: 600; }
+    #shake-layer { position: absolute; inset: 0; pointer-events: none; z-index: 598; }
+    #shake-layer.shaking { animation: shake 0.6s ease-out; }
+
+    /* ── SCROLL ── */
+    #scroll-wrap {
+      position: absolute; inset: 0;
+      overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #scroll-wrap::-webkit-scrollbar { display: none; }
+
+    .story { padding: 72px 36px 120px; }
+    .story-label { font-size: 9px; letter-spacing: 6px; color: #555555; margin-bottom: 56px; }
+
+    .blk {
+      margin-bottom: 40px;
+      opacity: 0; transform: translateY(16px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .blk.in { opacity: 1; transform: translateY(0); }
+    .sep { text-align: center; font-size: 11px; letter-spacing: 6px; color: #333333; margin: 48px 0; opacity: 0; transition: opacity 0.7s ease; }
+    .sep.in { opacity: 1; }
+
+    .n  { font-size: 15px; line-height: 2.1; color: #cc0000; margin-bottom: 10px; }
+    .n:last-child { margin-bottom: 0; }
+    .d  { font-size: 15px; line-height: 2.1; color: #ffffff; margin-bottom: 10px; }
+    .d:last-child { margin-bottom: 0; }
+    .a  { font-size: 13px; letter-spacing: 3px; line-height: 2.4; color: #999999; margin-bottom: 8px; }
+    .a:last-child { margin-bottom: 0; }
+    .em { font-size: 18px; font-weight: 700; color: #ff2222; letter-spacing: 2px; text-shadow: 0 0 14px rgba(255,0,0,0.5); }
+
+    /* 삐빅 효과 */
+    .beep-blk { text-align: center; margin: 24px 0; }
+    .beep-txt {
+      font-size: 20px; font-weight: 700;
+      color: #2a7a2a; letter-spacing: 6px;
+      text-shadow: 0 0 10px rgba(40,180,40,0.4);
+    }
+
+    /* 효과음 텍스트 */
+    .sfx-blk { text-align: center; margin: 20px 0; }
+    .sfx-txt {
+      font-size: 30px; font-weight: 700;
+      letter-spacing: 4px;
+      display: inline-block;
+    }
+    .sfx-txt.cheolpuk { color: #550000; text-shadow: 0 0 12px rgba(150,0,0,0.5); }
+    .sfx-txt.keunjuk  { color: #440000; letter-spacing: 6px; }
+    .sfx-txt.ggumtul  { color: #4a1a1a; }
+
+    /* 냄새 묘사 블록 */
+    .smell-blk { text-align: center; margin: 32px 0; }
+    .smell-txt { font-size: 13px; letter-spacing: 5px; color: #441111; line-height: 2.4; }
+
+    /* 적층 묘사 */
+    .pile-blk { text-align: center; margin: 32px 0; }
+    .pile-txt { font-size: 14px; letter-spacing: 4px; color: #330808; line-height: 2.6; }
+
+    /* ── 살덩어리 SVG 애니메이션 ── */
+    @keyframes flesh-pulse {
+      0%,100% { transform: scale(1) rotate(0deg); opacity: 0.88; }
+      40%  { transform: scale(1.05) rotate(1.5deg); opacity: 1; }
+      70%  { transform: scale(0.96) rotate(-1deg); opacity: 0.92; }
+    }
+    @keyframes flesh-pulse2 {
+      0%,100% { transform: scale(1) rotate(0deg); opacity: 0.85; }
+      35%  { transform: scale(1.06) rotate(-2deg); opacity: 1; }
+      65%  { transform: scale(0.97) rotate(1.5deg); opacity: 0.9; }
+    }
+    @keyframes flesh-pulse3 {
+      0%,100% { transform: scale(1) rotate(0deg); }
+      30%  { transform: scale(1.04) rotate(2deg); opacity: 1; }
+      60%  { transform: scale(0.95) rotate(-1.5deg); }
+    }
+    .blob-m1 { transform-box: fill-box; transform-origin: center; animation: flesh-pulse  1.9s 0.0s ease-in-out infinite; }
+    .blob-m2 { transform-box: fill-box; transform-origin: center; animation: flesh-pulse2 2.2s 0.4s ease-in-out infinite; }
+    .blob-m3 { transform-box: fill-box; transform-origin: center; animation: flesh-pulse  1.7s 0.8s ease-in-out infinite; }
+    .blob-m4 { transform-box: fill-box; transform-origin: center; animation: flesh-pulse3 2.0s 0.2s ease-in-out infinite; }
+    .blob-m5 { transform-box: fill-box; transform-origin: center; animation: flesh-pulse2 1.8s 1.1s ease-in-out infinite; }
+
+    .flesh-wrap {
+      margin: 8px 0; text-align: center;
+      padding: 24px 0;
+    }
+    .flesh-caption {
+      font-size: 10px; letter-spacing: 6px;
+      color: #331111; margin-top: 12px;
+    }
+
+    /* 붉은 플래시 (쾅 변형) */
+    @keyframes red-flash-in {
+      0%   { background: rgba(200,0,0,0); }
+      25%  { background: rgba(200,0,0,0.85); }
+      100% { background: rgba(200,0,0,0); }
+    }
+
+    /* 키패드 */
+    .keypad-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; margin: 8px 0;
+    }
+    .keypad-box {
+      border: 1px solid #3a0808;
+      padding: 18px 28px;
+      font-size: 13px; letter-spacing: 4px;
+      color: #888888;
+      background: #080000;
+      text-align: center;
+      width: 100%;
+    }
+    .keypad-question { font-size: 15px; color: #cc4444; letter-spacing: 2px; margin-top: 8px; line-height: 1.8; }
+
+    /* 문제 섹션 */
+    #question-section {
+      margin-top: 64px; padding-top: 48px;
+      border-top: 1px solid #1a0000;
+      text-align: center;
+      opacity: 0; transition: opacity 0.7s ease;
+    }
+    #question-section.in { opacity: 1; }
+    .q-bracket { font-size: 10px; letter-spacing: 7px; color: #888888; margin-bottom: 20px; }
+    .q-hint { font-size: 11px; letter-spacing: 2px; color: #553333; line-height: 2; margin-bottom: 24px; }
+    .q-text { font-size: 17px; line-height: 1.9; color: #cc0000; text-shadow: 0 0 8px rgba(204,0,0,0.2); margin-bottom: 40px; }
+    #answer-input {
+      width: 100%; background: transparent;
+      border: none; border-bottom: 1px solid #333333;
+      color: #ff4444; font-family: 'Maru Buri', serif;
+      font-size: 17px; letter-spacing: 4px;
+      padding: 10px 0; outline: none;
+      caret-color: #cc0000; text-align: center;
+    }
+    #answer-input::placeholder { color: #555555; }
+    #submit-btn {
+      margin-top: 28px; width: 100%; padding: 13px;
+      background: transparent; border: 1px solid #555555; color: #aaaaaa;
+      border-radius: 8px; font-family: 'Maru Buri', serif;
+      font-size: 11px; letter-spacing: 5px; cursor: pointer;
+      transition: border-color 0.3s, color 0.3s;
+    }
+    #submit-btn:hover, #submit-btn:active { border-color: #cc0000; color: #ffffff; }
+
+    /* 정답 오버레이 */
+    .overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center; text-align: center;
+      padding: 56px 36px; background: #000; z-index: 300;
+      opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
+    }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+    .correct-line { font-size: 14px; letter-spacing: 3px; color: #aaaaaa; line-height: 3; }
+    .correct-sep { width: 40px; height: 1px; background: #444; margin: 24px auto; }
+    .correct-next { font-size: 11px; letter-spacing: 5px; color: #666666; }
+
+    /* 배드엔딩 오버레이 */
+    #bad-ending {
+      position: absolute; inset: 0;
+      background: #000; z-index: 350;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+      overflow-y: auto; overflow-x: hidden;
+      scrollbar-width: none;
+    }
+    #bad-ending::-webkit-scrollbar { display: none; }
+    #bad-ending.show { opacity: 1; pointer-events: auto; }
+
+    .be-inner { padding: 80px 36px 100px; min-height: 100%; }
+    .be-line {
+      opacity: 0;
+      font-size: 14px; line-height: 2.3;
+      margin-bottom: 12px;
+    }
+    .be-line.be-n   { color: #cc0000; }
+    .be-line.be-d   { color: #ffffff; }
+    .be-line.be-a   { color: #888888; letter-spacing: 3px; }
+    .be-line.be-sfx {
+      text-align: center;
+      font-size: 30px; font-weight: 700;
+      color: #550000; letter-spacing: 6px;
+      text-shadow: 0 0 14px rgba(160,0,0,0.6);
+    }
+    .be-line.be-bip {
+      text-align: center;
+      font-size: 22px; font-weight: 700;
+      color: #880000; letter-spacing: 6px;
+      text-shadow: 0 0 18px rgba(200,0,0,0.7);
+    }
+    .be-line.be-pile {
+      text-align: center;
+      font-size: 12px; letter-spacing: 5px;
+      color: #441111; line-height: 2.6;
+    }
+    .be-line.be-scream {
+      font-size: 18px; font-weight: 700;
+      color: #ffffff; letter-spacing: 2px;
+    }
+    .be-line.be-cut {
+      text-align: center;
+      font-size: 11px; letter-spacing: 8px;
+      color: #333333;
+    }
+    .be-line.be-end-label {
+      text-align: center;
+      font-size: 10px; letter-spacing: 10px;
+      color: #551111; margin-top: 40px;
+    }
+    .be-wrong-txt { color: #ff4444; }
+
+    @keyframes be-appear {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    #retry-btn {
+      display: block; margin: 48px auto 0;
+      padding: 13px 40px;
+      background: transparent; border: 1px solid #440000; color: #888888;
+      border-radius: 8px; font-family: 'Maru Buri', serif;
+      font-size: 11px; letter-spacing: 5px; cursor: pointer;
+      opacity: 0; transition: border-color 0.3s, color 0.3s;
+    }
+    #retry-btn.show { animation: be-appear 0.5s forwards; }
+    #retry-btn:hover, #retry-btn:active { border-color: #cc0000; color: #ffffff; }
+
+    @keyframes shake {
+      0%,100%{transform:translate(0,0)} 10%{transform:translate(-10px,5px)}
+      20%{transform:translate(10px,-6px)} 30%{transform:translate(-8px,4px)}
+      40%{transform:translate(8px,-4px)} 50%{transform:translate(-6px,5px)}
+      60%{transform:translate(6px,-3px)} 70%{transform:translate(-4px,2px)} 80%{transform:translate(4px,-2px)}
+    }
+  </style>
+</head>
+<body>
+<div id="game">
+  <div id="flash"></div>
+  <div id="shake-layer"></div>
+
+  <div id="scroll-wrap">
+    <div class="story">
+      <div class="story-label">4# 축사2 — 지하 심층</div>
+
+      <!-- 삐빅- 도입 -->
+      <div class="blk beep-blk">
+        <span class="beep-txt">삐빅—</span>
+      </div>
+
+      <div class="blk">
+        <p class="n">조명이 초록색으로 바뀌고 문이 열리기 시작했다.</p>
+        <p class="n">문이 완전히 열리기도 전에 코를 찌르는 악취가 느껴졌다.</p>
+      </div>
+
+      <!-- 냄새 묘사 -->
+      <div class="blk smell-blk">
+        <p class="smell-txt">썩은 냄새 — 피 냄새 — 흙이 젖은 눅눅한 냄새</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"윽—"</p>
+        <p class="d">"뭐야 이 냄새는…"</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">T는 코를 틀어막은 채 안을 들여다봤다.</p>
+        <p class="n">이전에 봤던 축사와 구조가 같았다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">하지만 그 안은 전혀 다른 공간이었다.</p>
+        <p class="n">바닥에는 무언가 겹겹이 쌓여있다.</p>
+      </div>
+
+      <!-- 적층 묘사 -->
+      <div class="blk pile-blk">
+        <p class="pile-txt">썩고 — 섞이고 — 눌린 것</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">사방이 정체 모를 오물과 덩어리, 피범벅인 장소였다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">발을 내딛는 순간</p>
+      </div>
+
+      <!-- 철퍽 -->
+      <div class="blk sfx-blk">
+        <span class="sfx-txt cheolpuk">[철퍽]</span>
+      </div>
+
+      <div class="blk">
+        <p class="d">"…어?"</p>
+        <p class="n">신발 밑창이 바닥에 달라붙는다.</p>
+      </div>
+
+      <!-- 끈적 -->
+      <div class="blk sfx-blk">
+        <span class="sfx-txt keunjuk">[끈적—]</span>
+      </div>
+
+      <div class="blk">
+        <p class="a">…</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">그 아래에서 무언가 형태를 알 수 없는 것이 떨어졌다.</p>
+        <p class="n">소름이 끼치는 감각에 눈을 돌린 채 주변을 더 살펴보았다.</p>
+      </div>
+
+      <!-- 꿈틀 (붉은 플래시 트리거) -->
+      <div class="blk sfx-blk" id="flesh-trigger">
+        <span class="sfx-txt ggumtul">[꿈틀]</span>
+      </div>
+
+      <div class="blk">
+        <p class="n">바닥에 뭔가 움직이는 느낌이 들어 시선을 다시 아래로 향했다.</p>
+        <p class="n">바닥에 있던 것들 그 일부가 아주 느리게 움직이고 있다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"…지금… 움직였어?"</p>
+      </div>
+
+      <div class="blk">
+        <p class="a">…</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"흐… 흐아아!!"</p>
+        <p class="d">"이게 뭐야… 여기 뭐야…!"</p>
+      </div>
+
+      <!-- 살덩어리 SVG -->
+      <div class="blk flesh-wrap">
+        <svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="bg-vignette" cx="50%" cy="50%" r="70%">
+              <stop offset="0%"   stop-color="#0a0101" stop-opacity="0"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.85"/>
+            </radialGradient>
+            <radialGradient id="blood-pool" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"   stop-color="#1a0404" stop-opacity="0.7"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+
+          <!-- 바닥 배경 -->
+          <rect x="0" y="0" width="300" height="200" fill="#060000"/>
+
+          <!-- 바닥 혈흔 / 오물 -->
+          <ellipse cx="150" cy="100" rx="130" ry="85" fill="#0c0202" opacity="0.8"/>
+          <ellipse cx="60"  cy="150" rx="55"  ry="30" fill="#0f0303" opacity="0.6"/>
+          <ellipse cx="240" cy="60"  rx="50"  ry="28" fill="#0e0202" opacity="0.6"/>
+          <ellipse cx="200" cy="170" rx="65"  ry="22" fill="#0d0303" opacity="0.5"/>
+          <ellipse cx="90"  cy="50"  rx="40"  ry="20" fill="#0c0202" opacity="0.5"/>
+
+          <!-- ── 정적 개체 (움직이지 않음) ── -->
+          <!-- 소 실루엣 흔적 (좌측, 거의 형체 없음) -->
+          <g opacity="0.45">
+            <ellipse cx="28" cy="100" rx="22" ry="14" fill="#1a0505"/>
+            <ellipse cx="42" cy="94"  rx="12" ry="9"  fill="#150404"/>
+            <ellipse cx="18" cy="108" rx="8"  ry="6"  fill="#120303"/>
+          </g>
+
+          <!-- 정적 덩어리 1 -->
+          <g opacity="0.6">
+            <ellipse cx="268" cy="72"  rx="20" ry="13" fill="#1c0505" transform="rotate(15,268,72)"/>
+            <ellipse cx="275" cy="65"  rx="11" ry="8"  fill="#170404" transform="rotate(25,275,65)"/>
+            <ellipse cx="260" cy="78"  rx="9"  ry="6"  fill="#130303"/>
+          </g>
+
+          <!-- 정적 덩어리 2 -->
+          <g opacity="0.55">
+            <ellipse cx="225" cy="178" rx="22" ry="11" fill="#1b0505" transform="rotate(-10,225,178)"/>
+            <ellipse cx="215" cy="173" rx="12" ry="8"  fill="#160404"/>
+            <ellipse cx="233" cy="182" rx="9"  ry="6"  fill="#120303"/>
+          </g>
+
+          <!-- 정적 덩어리 3 (소 흔적, 우측) -->
+          <g opacity="0.4">
+            <ellipse cx="282" cy="155" rx="18" ry="11" fill="#190404"/>
+            <ellipse cx="290" cy="148" rx="10" ry="7"  fill="#140303"/>
+            <ellipse cx="275" cy="162" rx="8"  ry="5"  fill="#100202"/>
+          </g>
+
+          <!-- ── 움직이는 개체 5개 ── -->
+          <!-- 움직임 1: 좌중앙 -->
+          <g class="blob-m1">
+            <ellipse cx="78"  cy="118" rx="24" ry="16" fill="#2e0808" transform="rotate(20,78,118)"/>
+            <ellipse cx="70"  cy="111" rx="14" ry="10" fill="#3a0a0a" transform="rotate(10,70,111)"/>
+            <ellipse cx="87"  cy="124" rx="11" ry="8"  fill="#280707"/>
+            <ellipse cx="80"  cy="106" rx="6"  ry="4"  fill="#1e0505" opacity="0.8"/>
+          </g>
+
+          <!-- 움직임 2: 상단 중앙 -->
+          <g class="blob-m2">
+            <ellipse cx="152" cy="72"  rx="22" ry="15" fill="#320909" transform="rotate(-15,152,72)"/>
+            <ellipse cx="143" cy="66"  rx="13" ry="9"  fill="#3e0b0b" transform="rotate(5,143,66)"/>
+            <ellipse cx="161" cy="79"  rx="10" ry="7"  fill="#2c0808"/>
+            <ellipse cx="148" cy="60"  rx="5"  ry="3"  fill="#220606" opacity="0.9"/>
+          </g>
+
+          <!-- 움직임 3: 우중앙 -->
+          <g class="blob-m3">
+            <ellipse cx="198" cy="128" rx="25" ry="15" fill="#2f0808" transform="rotate(30,198,128)"/>
+            <ellipse cx="190" cy="121" rx="15" ry="10" fill="#3c0a0a" transform="rotate(-10,190,121)"/>
+            <ellipse cx="207" cy="135" rx="12" ry="8"  fill="#290707"/>
+            <ellipse cx="195" cy="116" rx="7"  ry="4"  fill="#1f0505" opacity="0.8"/>
+          </g>
+
+          <!-- 움직임 4: 하단 좌측 -->
+          <g class="blob-m4">
+            <ellipse cx="100" cy="165" rx="23" ry="14" fill="#310909" transform="rotate(-20,100,165)"/>
+            <ellipse cx="91"  cy="159" rx="13" ry="9"  fill="#3b0b0b" transform="rotate(15,91,159)"/>
+            <ellipse cx="110" cy="170" rx="11" ry="7"  fill="#2b0808"/>
+            <ellipse cx="97"  cy="154" rx="6"  ry="4"  fill="#200606" opacity="0.9"/>
+          </g>
+
+          <!-- 움직임 5: 우측 -->
+          <g class="blob-m5">
+            <ellipse cx="244" cy="112" rx="21" ry="14" fill="#300808" transform="rotate(25,244,112)"/>
+            <ellipse cx="236" cy="106" rx="12" ry="9"  fill="#3d0b0b" transform="rotate(-5,236,106)"/>
+            <ellipse cx="252" cy="118" rx="10" ry="7"  fill="#2a0707"/>
+            <ellipse cx="241" cy="101" rx="5"  ry="3"  fill="#1e0505" opacity="0.8"/>
+          </g>
+
+          <!-- 전체 비네팅 -->
+          <rect x="0" y="0" width="300" height="200" fill="url(#bg-vignette)"/>
+
+          <!-- 외곽 테두리 -->
+          <rect x="0.75" y="0.75" width="298.5" height="198.5" fill="none" stroke="#1a0404" stroke-width="1.5"/>
+        </svg>
+        <div class="flesh-caption">움직임을 관찰하라</div>
+      </div>
+
+      <div class="blk">
+        <p class="n">T는 주변을 둘러본 뒤 겁에 질려 온몸을 덜덜 떨기 시작했다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"빠. 빨리 나가야 해."</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">T는 떨리는 다리로 주변을 둘러봤다.</p>
+        <p class="n">저 멀리 희미한 조명 아래 문 하나가 보였다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"문!"</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">T는 신발 너머에서 느껴지는 기괴하고 불쾌한 감촉들을 애써 무시한 채</p>
+        <p class="n">문으로 달려 나가기 시작했다.</p>
+      </div>
+
+      <div class="sep">—</div>
+
+      <div class="blk">
+        <p class="n">도착한 문에는 키패드가 있었다.</p>
+      </div>
+
+      <!-- 키패드 비주얼 -->
+      <div class="blk">
+        <div class="keypad-wrap">
+          <div class="keypad-box">
+            <div style="font-size:9px; letter-spacing:5px; color:#440000; margin-bottom:8px;">— KEYPAD —</div>
+            <div class="keypad-question">관리하는 개체 수는?</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 문제 섹션 -->
+      <div id="question-section">
+        <div class="q-bracket">— 문 제 —</div>
+        <div class="q-hint">움직이는 개체의 수를 입력하시오.</div>
+        <div class="q-text">관리하는 개체 수는?</div>
+        <input type="number" id="answer-input" placeholder="숫자를 입력하시오…"
+               autocomplete="off" inputmode="numeric"/>
+        <button id="submit-btn">정답입력</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 배드엔딩 오버레이 -->
+  <div id="bad-ending">
+    <div class="be-inner">
+      <p class="be-line be-d" id="be-wrong-answer"></p>
+      <p class="be-line be-n">아무런 반응이 없이 고요하다.</p>
+      <p class="be-line be-a">…</p>
+      <p class="be-line be-a">…</p>
+      <p class="be-line be-bip">[삐———]</p>
+
+      <p class="be-line be-n" style="margin-top:20px;">갑자기 조명이 붉게 변하고 시끄러운 소리가 들리기 시작했다.</p>
+      <p class="be-line be-scream">"으악—"</p>
+
+      <p class="be-line be-n" style="margin-top:12px;">발밑이 꿈틀거렸다.</p>
+      <p class="be-line be-sfx">[철퍽]</p>
+
+      <p class="be-line be-d">"…뭐야?"</p>
+      <p class="be-line be-n">T는 천천히 아래를 내려다봤다.</p>
+      <p class="be-line be-n">조금 전까지 바닥에 엉겨 붙어 있던 살덩이들이 아주 천천히</p>
+      <p class="be-line be-n">서로를 밀어내듯 움직이고 있었다.</p>
+
+      <p class="be-line be-d" style="margin-top:12px;">"하… 하하… 장난하지 마…"</p>
+
+      <p class="be-line be-n" style="margin-top:12px;">뒤로 물러나려 했지만, 신발 밑창이 바닥에 달라붙어 떨어지지 않았다.</p>
+      <p class="be-line be-sfx">[끈적—]</p>
+      <p class="be-line be-d">"아, 안 떨어져…"</p>
+
+      <p class="be-line be-n" style="margin-top:12px;">억지로 발을 떼어내는 순간 바닥 아래에서 무언가가 같이 따라 올라왔다.</p>
+
+      <p class="be-line be-pile">살점 같은 것</p>
+      <p class="be-line be-pile">손가락 같은 것</p>
+      <p class="be-line be-pile">뼈 같은 것</p>
+
+      <p class="be-line be-n" style="margin-top:12px;">형태를 알 수 없는 것들이 신발과 발목을 감싸기 시작했다.</p>
+      <p class="be-line be-scream">"으, 으아아악!!"</p>
+
+      <p class="be-line be-n" style="margin-top:12px;">T는 중심을 잃고 바닥으로 넘어졌다.</p>
+      <p class="be-line be-sfx">[철퍽—]</p>
+
+      <p class="be-line be-n" style="margin-top:12px;">넘어진 얼굴 바로 앞에서 살덩이 하나가 천천히 갈라졌다.</p>
+      <p class="be-line be-n">그 안쪽에서 눈 하나가 떠졌다.</p>
+
+      <p class="be-line be-d">"…아…"</p>
+
+      <p class="be-line be-n" style="margin-top:12px;">주변의 축사 안에서도 꾸물거리던 것들이 동시에 몸을 뒤집기 시작했다.</p>
+      <p class="be-line be-n">전부 — T 쪽을 향해서.</p>
+
+      <p class="be-line be-d" style="margin-top:16px;">"살려줘… 제발… 살려…"</p>
+
+      <p class="be-line be-n" style="margin-top:12px;">그 순간 발목을 붙잡고 있던 것들이 허리까지 기어 올라왔다.</p>
+      <p class="be-line be-sfx">[질척]</p>
+      <p class="be-line be-scream">"아아아아—!"</p>
+
+      <p class="be-line be-cut" style="margin-top:32px;">[ 화면 끊김 ]</p>
+      <p class="be-line be-end-label" style="margin-top:40px;">— 배드엔딩 —</p>
+
+      <button id="retry-btn">다시하기</button>
+    </div>
+  </div>
+
+  <!-- 정답 화면 -->
+  <div class="overlay" id="correct-screen">
+    <div class="correct-line">문이 열렸다.</div>
+    <div class="correct-sep"></div>
+    <div class="correct-next">5# 사료창고2 — 준비 중</div>
+  </div>
+
+</div>
+
+<audio id="aud-ambient"   src="ambient.mp3"   loop preload="auto"></audio>
+<audio id="aud-heartbeat" src="heartbeat.mp3" loop preload="auto"></audio>
+<audio id="aud-bad"       src="bad_ending.mp3"     preload="auto"></audio>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const AUD = {
+  ambient:   $('aud-ambient'),
+  heartbeat: $('aud-heartbeat'),
+  bad:       $('aud-bad'),
+};
+function play(k, v = 0.6) {
+  const a = AUD[k]; if (!a) return;
+  a.volume = v; a.currentTime = 0; a.play().catch(() => {});
+}
+function stopAll() { Object.values(AUD).forEach(a => { a.pause(); a.currentTime = 0; }); }
+
+/* 첫 스크롤 시 ambient 시작 */
+let ambientStarted = false;
+$('scroll-wrap').addEventListener('scroll', () => {
+  if (!ambientStarted) { ambientStarted = true; play('ambient', 0.45); }
+}, { passive: true });
+
+/* IntersectionObserver */
+let heartbeatFired = false;
+let flashFired = false;
+
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target;
+    if (el.classList.contains('blk') || el.classList.contains('sep')) el.classList.add('in');
+    if (el.id === 'question-section' && !heartbeatFired) {
+      heartbeatFired = true;
+      el.classList.add('in');
+      play('heartbeat', 0.35);
+    }
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('.blk, .sep, #question-section').forEach(el => obs.observe(el));
+
+/* 살덩어리 등장 — 붉은 플래시 + 흔들림 */
+const flashObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting || flashFired) return;
+    flashFired = true;
+    triggerRedFlash();
+  });
+}, { threshold: 0.6 });
+flashObs.observe($('flesh-trigger'));
+
+function triggerRedFlash() {
+  const flash = $('flash');
+  const sw    = $('scroll-wrap');
+  const savedTop = sw.scrollTop;
+  const sl    = $('shake-layer');
+
+  /* 붉은 플래시 */
+  flash.style.transition = 'background 0.1s ease';
+  flash.style.background = 'rgba(180,0,0,0.75)';
+  requestAnimationFrame(() => { sw.scrollTop = savedTop; });
+
+  setTimeout(() => {
+    flash.style.transition = 'background 0.9s ease';
+    flash.style.background = 'rgba(180,0,0,0)';
+  }, 200);
+  setTimeout(() => { flash.style.transition = ''; }, 1100);
+
+  /* 흔들림 */
+  sl.classList.add('shaking');
+  setTimeout(() => sl.classList.remove('shaking'), 650);
+}
+
+/* 정답 확인 */
+$('submit-btn').addEventListener('click', checkAnswer);
+$('answer-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
+
+function checkAnswer() {
+  const raw = $('answer-input').value.trim();
+  if (!raw) return;
+  const stripped = raw.replace(/\s|개/g, '');
+  if (stripped === '5') {
+    stopAll();
+    play('ambient', 0.5);
+    $('correct-screen').classList.add('show');
+  } else {
+    triggerBadEnding(raw);
+  }
+}
+
+function triggerBadEnding(wrongAnswer) {
+  stopAll();
+
+  /* 오답 텍스트 */
+  $('be-wrong-answer').textContent = `"${wrongAnswer}"을 입력했지만`;
+
+  /* 배드엔딩 오버레이 */
+  const be = $('bad-ending');
+  be.classList.add('show');
+  be.scrollTop = 0;
+
+  /* 붉은 플래시 */
+  const flash = $('flash');
+  flash.style.transition = 'background 0.1s ease';
+  flash.style.background = 'rgba(200,0,0,0.9)';
+  setTimeout(() => {
+    flash.style.transition = 'background 1.5s ease';
+    flash.style.background = 'rgba(200,0,0,0)';
+    play('bad', 0.75);
+  }, 300);
+  setTimeout(() => { flash.style.transition = ''; }, 1850);
+
+  /* 각 줄 순서대로 등장 */
+  const lines = be.querySelectorAll('.be-line');
+  lines.forEach((line, i) => {
+    const delay = 600 + i * 650;
+    setTimeout(() => {
+      line.style.opacity = '';
+      line.style.animation = 'be-appear 0.5s forwards';
+    }, delay);
+  });
+
+  /* 화면 끊김 연출 */
+  const cutDelay = 600 + (lines.length - 2) * 650;
+  setTimeout(() => {
+    const f = $('flash');
+    let tick = 0;
+    const flicker = setInterval(() => {
+      f.style.background = tick % 2 === 0 ? 'rgba(0,0,0,0.97)' : 'rgba(0,0,0,0)';
+      tick++;
+      if (tick >= 6) { clearInterval(flicker); f.style.background = 'rgba(0,0,0,0)'; }
+    }, 120);
+  }, cutDelay);
+
+  /* 다시하기 버튼 */
+  const totalDelay = 600 + lines.length * 650 + 1200;
+  setTimeout(() => {
+    $('retry-btn').classList.add('show');
+  }, totalDelay);
+}
+
+$('retry-btn').addEventListener('click', () => {
+  stopAll();
+  const be = $('bad-ending');
+  be.classList.remove('show');
+
+  be.querySelectorAll('.be-line').forEach(line => {
+    line.style.animation = '';
+    line.style.opacity = '';
+  });
+  $('retry-btn').classList.remove('show');
+  $('retry-btn').style.animation = '';
+  $('retry-btn').style.opacity = '';
+
+  $('answer-input').value = '';
+  $('answer-input').focus();
+  play('ambient', 0.45);
+});
+</script>
+</body>
+</html>
