@@ -215,10 +215,13 @@
       border: 1px solid #333333; color: #666666;
       border-radius: 8px; font-family: 'Maru Buri', serif;
       font-size: 11px; letter-spacing: 5px; cursor: pointer;
-      opacity: 0.4; pointer-events: none;
-      transition: border-color 0.3s, color 0.3s, opacity 0.3s;
+      opacity: 0; pointer-events: none;
+      transition: border-color 0.3s, color 0.3s;
     }
-    #ad-skip-btn.active { opacity: 1; pointer-events: auto; }
+    #ad-skip-btn.active {
+      opacity: 1; pointer-events: auto;
+      animation: be-appear 0.5s forwards;
+    }
     #ad-skip-btn.active:hover { border-color: #888888; color: #ffffff; }
 
     /* 정답 오버레이 */
@@ -759,8 +762,7 @@ function mgStartTimer() {
     mg.timer--;
     if (mg.timer <= 10) {
       bar.classList.add('urgent');
-      if (!AUD.heartbeat.paused) return;
-      play('heartbeat', 0.5);
+      if (AUD.heartbeat.paused) play('heartbeat', 0.5);
     }
     if (mg.timer <= 0) {
       clearInterval(tick);
@@ -790,7 +792,8 @@ function mgMove(dx, dy) {
         mg.hasLever = true;
         mgMsg('레버 획득! 하수구로 이동하세요', true);
       } else {
-        mgMsg('꽝!', false);
+        const duds = ['피묻은 천', '썩은 사료'];
+        mgMsg(duds[Math.floor(Math.random() * duds.length)], false);
       }
     }
   }
@@ -880,14 +883,15 @@ $('btn-start-game').addEventListener('click', startGame);
 $('btn-ad-skip').addEventListener('click', () => {
   $('ad-overlay').classList.add('show');
   let sec = 5;
-  const count = $('ad-count');
-  count.textContent = `${sec}초 후 스킵 가능`;
+  const count    = $('ad-count');
+  const skipBtn  = $('ad-skip-btn');
+  skipBtn.classList.remove('active');
+  count.textContent = `${sec}초 후 스킵`;
   const t = setInterval(() => {
     sec--;
-    count.textContent = sec > 0 ? `${sec}초 후 스킵 가능` : '스킵 가능';
+    count.textContent = sec > 0 ? `${sec}초 후 스킵` : '스킵 가능';
     if (sec <= 0) {
       clearInterval(t);
-      const skipBtn = $('ad-skip-btn');
       skipBtn.classList.add('active');
     }
   }, 1000);
