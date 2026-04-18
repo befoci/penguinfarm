@@ -439,8 +439,6 @@
   <!-- CORRECT -->
   <div class="overlay" id="correct-screen">
     <div class="correct-line">사료 창고의 문이 열렸다.</div>
-    <div class="correct-sep"></div>
-    <div class="correct-next">2# 사료창고 — 준비 중</div>
   </div>
 
 </div>
@@ -516,6 +514,7 @@ function checkAnswer() {
     stopAll();
     play('ambient', 0.5);
     $('correct-screen').classList.add('show');
+    setTimeout(() => { window.location.href = 'storage.html'; }, 2200);
   } else {
     stopAll();
     play('bad', 0.6);

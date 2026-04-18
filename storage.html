@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>펭귄 농장 — 2# 사료창고</title>
+  <link href="https://fonts.googleapis.com/css2?family=Maru+Buri:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; background: #000; -webkit-tap-highlight-color: transparent; }
+
+    #game {
+      position: relative;
+      width: 100%; max-width: 480px; height: 100dvh;
+      margin: 0 auto; background: #000;
+      font-family: 'Maru Buri', 'Nanum Myeongjo', serif;
+      overflow: hidden;
+    }
+    #game::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px);
+      pointer-events: none; z-index: 500;
+    }
+    #game::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+      pointer-events: none; z-index: 499;
+    }
+
+    #flash { position: absolute; inset: 0; background: rgba(255,255,255,0); pointer-events: none; z-index: 600; }
+    #shake-layer { position: absolute; inset: 0; pointer-events: none; z-index: 598; }
+    #shake-layer.shaking { animation: shake 0.55s ease-out; }
+
+    /* ── SCROLL ── */
+    #scroll-wrap {
+      position: absolute; inset: 0;
+      overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #scroll-wrap::-webkit-scrollbar { display: none; }
+
+    .story { padding: 72px 36px 120px; }
+    .story-label { font-size: 9px; letter-spacing: 6px; color: #555555; margin-bottom: 56px; }
+
+    .blk {
+      margin-bottom: 40px;
+      opacity: 0; transform: translateY(16px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .blk.in { opacity: 1; transform: translateY(0); }
+    .sep { text-align: center; font-size: 11px; letter-spacing: 6px; color: #333333; margin: 48px 0; opacity: 0; transition: opacity 0.7s ease; }
+    .sep.in { opacity: 1; }
+
+    .n  { font-size: 15px; line-height: 2.1; color: #cc0000; margin-bottom: 10px; }
+    .n:last-child { margin-bottom: 0; }
+    .d  { font-size: 15px; line-height: 2.1; color: #ffffff; margin-bottom: 10px; }
+    .d:last-child { margin-bottom: 0; }
+    .a  { font-size: 13px; letter-spacing: 3px; line-height: 2.4; color: #999999; margin-bottom: 8px; }
+    .a:last-child { margin-bottom: 0; }
+    .em { font-size: 20px; font-weight: 700; color: #ff2222; letter-spacing: 2px; text-shadow: 0 0 14px rgba(255,0,0,0.5); }
+
+    /* 지직 효과 */
+    .jijik-blk { text-align: center; margin: 40px 0; }
+    .jijik-txt {
+      display: block;
+      font-size: 26px; font-weight: 700;
+      color: #777777; letter-spacing: 4px;
+      opacity: 0;
+    }
+    .jijik-txt + .jijik-txt { margin-top: 10px; }
+    .jijik-blk.in .jijik-txt:first-child { animation: jijik-flicker 2s 0.4s ease-out forwards; }
+    .jijik-blk.in .jijik-txt:last-child  { animation: jijik-flicker 2s 1.0s ease-out forwards; }
+    @keyframes jijik-flicker {
+      0%   { opacity: 0; }
+      8%   { opacity: 1; }
+      16%  { opacity: 0.05; }
+      24%  { opacity: 0.85; }
+      32%  { opacity: 0.1; }
+      42%  { opacity: 1; }
+      55%  { opacity: 0.45; }
+      68%  { opacity: 1; }
+      100% { opacity: 0.8; }
+    }
+
+    /* 쾅 효과 */
+    .bang-blk { text-align: center; margin: 48px 0; }
+    .bang-txt {
+      font-size: 52px; font-weight: 700;
+      color: #ffffff; letter-spacing: 6px;
+      text-shadow: 0 0 30px rgba(255,255,255,0.5);
+    }
+
+    /* 퉁퉁 효과 */
+    .effect-blk { text-align: center; margin: 32px 0; }
+    .effect-txt {
+      font-size: 24px; font-weight: 700;
+      color: #666666; letter-spacing: 4px;
+    }
+
+    /* 계단 비주얼 */
+    .stair-wrap {
+      margin: 8px 0; text-align: center;
+      padding: 32px 0;
+    }
+    .stair-svg { display: inline-block; }
+
+    /* 키패드 비주얼 */
+    .keypad-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; margin: 8px 0;
+    }
+    .keypad-box {
+      border: 1px solid #444444;
+      padding: 16px 28px;
+      font-size: 13px; letter-spacing: 4px;
+      color: #888888;
+      background: #0a0a0a;
+      text-align: center;
+    }
+    .keypad-question { font-size: 15px; color: #aaaaaa; letter-spacing: 2px; margin-top: 4px; }
+
+    /* 문제 섹션 */
+    #question-section {
+      margin-top: 64px; padding-top: 48px;
+      border-top: 1px solid #1a0000;
+      text-align: center;
+      opacity: 0; transition: opacity 0.7s ease;
+    }
+    #question-section.in { opacity: 1; }
+    .q-bracket { font-size: 10px; letter-spacing: 7px; color: #888888; margin-bottom: 20px; }
+    .q-text { font-size: 17px; line-height: 1.9; color: #cc0000; text-shadow: 0 0 8px rgba(204,0,0,0.2); margin-bottom: 40px; }
+    #answer-input {
+      width: 100%; background: transparent;
+      border: none; border-bottom: 1px solid #333333;
+      color: #ff4444; font-family: 'Maru Buri', serif;
+      font-size: 17px; letter-spacing: 4px;
+      padding: 10px 0; outline: none;
+      caret-color: #cc0000; text-align: center;
+    }
+    #answer-input::placeholder { color: #555555; }
+    #submit-btn {
+      margin-top: 28px; width: 100%; padding: 13px;
+      background: transparent; border: 1px solid #555555; color: #aaaaaa;
+      border-radius: 8px; font-family: 'Maru Buri', serif;
+      font-size: 11px; letter-spacing: 5px; cursor: pointer;
+      transition: border-color 0.3s, color 0.3s;
+    }
+    #submit-btn:hover, #submit-btn:active { border-color: #cc0000; color: #ffffff; }
+
+    /* 오답 팝업 */
+    #wrong-popup {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.88); z-index: 400;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+    }
+    #wrong-popup.show { opacity: 1; pointer-events: auto; }
+    .popup-inner {
+      border: 1px solid #440000; background: #080000;
+      padding: 44px 32px; text-align: center;
+      max-width: 300px; width: 90%;
+    }
+    .popup-msg { font-size: 14px; color: #aaaaaa; line-height: 2.2; margin-bottom: 28px; }
+    #popup-close-btn {
+      padding: 12px 36px; background: transparent;
+      border: 1px solid #555555; color: #aaaaaa;
+      border-radius: 8px; font-family: 'Maru Buri', serif;
+      font-size: 11px; letter-spacing: 5px; cursor: pointer;
+      transition: border-color 0.3s, color 0.3s;
+    }
+    #popup-close-btn:hover, #popup-close-btn:active { border-color: #cc0000; color: #ffffff; }
+
+    /* 정답 오버레이 */
+    .overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center; text-align: center;
+      padding: 56px 36px; background: #000; z-index: 300;
+      opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
+    }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+    .correct-line { font-size: 14px; letter-spacing: 3px; color: #aaaaaa; line-height: 3; }
+
+    @keyframes shake {
+      0%,100%{transform:translate(0,0)} 10%{transform:translate(-9px,5px)}
+      20%{transform:translate(9px,-5px)} 30%{transform:translate(-7px,3px)}
+      40%{transform:translate(7px,-3px)} 50%{transform:translate(-5px,4px)}
+      60%{transform:translate(5px,-2px)} 70%{transform:translate(-3px,1px)} 80%{transform:translate(3px,-1px)}
+    }
+  </style>
+</head>
+<body>
+<div id="game">
+  <div id="flash"></div>
+  <div id="shake-layer"></div>
+
+  <div id="scroll-wrap">
+    <div class="story">
+      <div class="story-label">2# 사료창고 — 지상 탐험</div>
+
+      <div class="blk">
+        <p class="n">문이 열리자 코를 찌르는 냄새가 퍼졌다.</p>
+        <p class="d">"윽-"</p>
+        <p class="d">"뭐야 이 냄새…"</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">사육장에서 맡았던 냄새와는 다른,</p>
+        <p class="n">더 짙고 비릿한 냄새가 느껴졌다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">T는 얼굴을 찌푸리며 안으로 들어갔다.</p>
+        <p class="n">사료 창고 안은 사육장과 달리 조명이 절반쯤 나가 있었고,</p>
+        <p class="n">불빛이 깜빡였다.</p>
+      </div>
+
+      <!-- 지직 효과 -->
+      <div class="blk jijik-blk">
+        <span class="jijik-txt">[ 지직 — ]</span>
+        <span class="jijik-txt">[ 지지직 — ]</span>
+      </div>
+
+      <div class="blk">
+        <p class="d">"어휴… 여기는 냄새도 그렇고 느낌이 안좋은데"</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">바닥 한쪽에는 사료 포대와 건초들이 가득 쌓여있었고,</p>
+        <p class="n">T는 가장 가까운 포대를 발로 툭 건드렸다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">포대는 낡았는지 충격과 동시에 찢어져 버렸다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"앗, 터졌다…"</p>
+        <p class="d">"근데 왜 이렇게 냄새가…"</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">T는 주변을 둘러보았으나 더 나아갈 수 있는 문은 보이지 않았다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"에이 뭐야, 여기가 끝인가보네"</p>
+        <p class="d">"여러분 생각보다 규모가 작은 곳이네요"</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">T는 카메라를 보며 촬영을 정리하려던 순간 —</p>
+        <p class="n">갑자기 들어온 문이 쾅- 하고 닫혀버렸다.</p>
+      </div>
+
+      <!-- 쾅 효과 -->
+      <div class="blk bang-blk" id="bang-trigger">
+        <div class="bang-txt">[ 쾅 — ]</div>
+      </div>
+
+      <div class="blk">
+        <p class="a">…</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">큰 굉음에 놀란 T는 닫힌 문을 보자 소리도 내지 못한 채 문으로 달려갔다.</p>
+        <p class="n">하지만, 문은 꼼짝도 하지 않았다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">T는 겁에 질린 채 문을 두들기며 사람을 찾았다.</p>
+        <p class="d">"여, 여기 사람 있어요!"</p>
+        <p class="d">"갇혔어요! 도와주세요!!"</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">하지만 그곳에서는 T의 목소리만 울려 퍼질 뿐이었다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"어떡하지, 여기 갇혔어"</p>
+        <p class="d">"침착하자… 일단 문을 열 방법을 찾아보자"</p>
+      </div>
+
+      <div class="sep">· · ·</div>
+
+      <div class="blk">
+        <p class="n">T는 문을 열기 위해 쌓여있는 포댓자루와 건초더미를 헤집기 시작했다.</p>
+        <p class="d">"어..?"</p>
+        <p class="n">한쪽의 포대를 모두 치우니 바닥에 있는 작은 철판을 발견했다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"뭐야, 이거 문인가..?"</p>
+      </div>
+
+      <!-- 퉁퉁 효과 -->
+      <div class="blk effect-blk">
+        <div class="effect-txt">[ 퉁퉁 — ]</div>
+      </div>
+
+      <div class="blk">
+        <p class="n">살짝 두들겨 보니 안에 비어있는 듯한 소리가 들렸고,</p>
+        <p class="n">철판 끝에 달린 손잡이를 발견했다.</p>
+        <p class="n">그 문을 보는 순간 T는 무언가 불안한 마음이 몰려왔다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"후… 심호흡하자, 일단 길이 없으니 여기라도 가봐야겠지"</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">T는 불안한 마음을 뒤로한 채 철문을 열었고,</p>
+        <p class="n">철문은 부드럽게 열렸다.</p>
+      </div>
+
+      <div class="blk" style="text-align:center;">
+        <p class="a">지하로 가는 계단.</p>
+        <p class="a">계단 아래는 빛이 닿지 않아</p>
+        <p class="a">깜깜한 암흑만이 있었다.</p>
+      </div>
+
+      <!-- 계단 SVG -->
+      <div class="blk stair-wrap">
+        <svg width="120" height="90" viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0"  y="0"  width="120" height="15" fill="#1a0808" stroke="#2a1010" stroke-width="1"/>
+          <rect x="10" y="15" width="110" height="15" fill="#150606" stroke="#2a1010" stroke-width="1"/>
+          <rect x="20" y="30" width="100" height="15" fill="#110404" stroke="#1a0808" stroke-width="1"/>
+          <rect x="30" y="45" width="90"  height="15" fill="#0d0303" stroke="#1a0808" stroke-width="1"/>
+          <rect x="40" y="60" width="80"  height="15" fill="#080202" stroke="#150606" stroke-width="1"/>
+          <rect x="50" y="75" width="70"  height="15" fill="#050101" stroke="#110404" stroke-width="1"/>
+          <!-- 암흑 그라디언트 -->
+          <defs>
+            <linearGradient id="dark-fade" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#000" stop-opacity="0"/>
+              <stop offset="100%" stop-color="#000" stop-opacity="0.95"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="120" height="90" fill="url(#dark-fade)"/>
+        </svg>
+      </div>
+
+      <div class="blk">
+        <p class="a">…</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"…진짜 내려가야 하나."</p>
+        <p class="n">T는 계단을 보고 주춤했다.</p>
+        <p class="n">하지만 다른 길을 찾지 못해 카메라를 들고 계단을 내려가기 시작했다.</p>
+      </div>
+
+      <div class="sep">— —</div>
+
+      <div class="blk">
+        <p class="n">얼마쯤 내려왔을까</p>
+        <p class="n">계단 앞에 문을 발견했다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">문 위에는 붉은 조명이 깜빡거렸고,</p>
+        <p class="n">조명 아래의 문은 이전 장소의 철문보다 두껍고 녹이 슬어있다.</p>
+      </div>
+
+      <div class="blk">
+        <p class="d">"분위기가. 이상해… 집에 가고 싶어"</p>
+      </div>
+
+      <div class="blk">
+        <p class="n">이제는 거의 울 것 같은 표정으로 중얼거리던 T는 계속해서 나아가기로 결심했다.</p>
+        <p class="n">문 주변에는 아까와 같은 키패드가 있었고,</p>
+        <p class="n">키패드 위에는 하나의 문장이 있었다.</p>
+      </div>
+
+      <!-- 키패드 비주얼 -->
+      <div class="blk">
+        <div class="keypad-wrap">
+          <div class="keypad-box">
+            <div style="font-size:9px; letter-spacing:5px; color:#555; margin-bottom:8px;">— KEYPAD —</div>
+            <div class="keypad-question">당신이 방문한 곳의 이름은?</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 문제 -->
+      <div id="question-section">
+        <div class="q-bracket">— 문 제 —</div>
+        <div class="q-text">당신이 방문한 곳의<br>이름은?</div>
+        <input type="text" id="answer-input" placeholder="이름을 입력하시오…" autocomplete="off" spellcheck="false"/>
+        <button id="submit-btn">정답입력</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 오답 팝업 -->
+  <div id="wrong-popup">
+    <div class="popup-inner">
+      <p class="popup-msg">다시 한번 정답을<br>입력해 보세요.</p>
+      <button id="popup-close-btn">다시 입력</button>
+    </div>
+  </div>
+
+  <!-- 정답 화면 -->
+  <div class="overlay" id="correct-screen">
+    <div class="correct-line">지하로 이어지는 문이 열렸다.</div>
+  </div>
+
+</div>
+
+<audio id="aud-ambient"   src="ambient.mp3"   loop preload="auto"></audio>
+<audio id="aud-heartbeat" src="heartbeat.mp3" loop preload="auto"></audio>
+<audio id="aud-door"      src="Metal_Door.mp3"     preload="auto"></audio>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const AUD = { ambient: $('aud-ambient'), heartbeat: $('aud-heartbeat'), door: $('aud-door') };
+function play(k,v=0.6){ const a=AUD[k]; if(!a)return; a.volume=v; a.currentTime=0; a.play().catch(()=>{}); }
+function stopAll(){ Object.values(AUD).forEach(a=>{ a.pause(); a.currentTime=0; }); }
+
+/* 첫 스크롤 시 ambient 시작 */
+let ambientStarted = false;
+$('scroll-wrap').addEventListener('scroll', () => {
+  if (!ambientStarted) { ambientStarted = true; play('ambient', 0.45); }
+}, { passive: true });
+
+/* IntersectionObserver */
+let bangFired = false;
+let heartbeatFired = false;
+
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target;
+    if (el.classList.contains('blk') || el.classList.contains('sep')) el.classList.add('in');
+    if (el.id === 'question-section' && !heartbeatFired) {
+      heartbeatFired = true;
+      el.classList.add('in');
+      play('heartbeat', 0.35);
+    }
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('.blk, .sep, #question-section').forEach(el => obs.observe(el));
+
+/* 쾅 트리거 */
+const bangObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting || bangFired) return;
+    bangFired = true;
+    triggerBang();
+  });
+}, { threshold: 0.75 });
+bangObs.observe($('bang-trigger'));
+
+function triggerBang() {
+  play('door', 1.0);
+
+  const flash = $('flash');
+  const shakeLayer = $('shake-layer');
+  const sw = $('scroll-wrap');
+  const savedTop = sw.scrollTop;
+
+  flash.style.transition = 'none';
+  flash.style.background = 'rgba(255,255,255,0.95)';
+  shakeLayer.classList.add('shaking');
+
+  requestAnimationFrame(() => { sw.scrollTop = savedTop; });
+
+  setTimeout(() => {
+    flash.style.transition = 'background 0.5s ease';
+    flash.style.background = 'rgba(255,255,255,0)';
+  }, 70);
+
+  setTimeout(() => {
+    flash.style.transition = '';
+    shakeLayer.classList.remove('shaking');
+  }, 620);
+}
+
+/* 정답 확인 */
+$('submit-btn').addEventListener('click', checkAnswer);
+$('answer-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
+
+function checkAnswer() {
+  const raw = $('answer-input').value.trim();
+  if (!raw) return;
+  if (raw.replace(/\s/g, '') === '폥귄농장') {
+    stopAll();
+    play('ambient', 0.5);
+    $('correct-screen').classList.add('show');
+    setTimeout(() => { window.location.href = 'tunnel.html'; }, 2200);
+  } else {
+    $('wrong-popup').classList.add('show');
+  }
+}
+
+$('popup-close-btn').addEventListener('click', () => {
+  $('wrong-popup').classList.remove('show');
+  $('answer-input').value = '';
+});
+</script>
+</body>
+</html>
