@@ -184,6 +184,8 @@
     }
     .overlay.show { opacity: 1; pointer-events: auto; }
     .correct-line { font-size: 14px; letter-spacing: 3px; color: #aaaaaa; line-height: 3; }
+    .correct-sep { width: 40px; height: 1px; background: #444; margin: 24px auto; }
+    .correct-next { font-size: 11px; letter-spacing: 5px; color: #666666; }
 
     @keyframes shake {
       0%,100%{transform:translate(0,0)} 10%{transform:translate(-9px,5px)}
@@ -324,23 +326,25 @@
         <p class="a">깜깜한 암흑만이 있었다.</p>
       </div>
 
-      <!-- 계단 SVG -->
+      <!-- 계단 SVG (위에서 내려다보는 시점) -->
       <div class="blk stair-wrap">
-        <svg width="120" height="90" viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0"  y="0"  width="120" height="15" fill="#1a0808" stroke="#2a1010" stroke-width="1"/>
-          <rect x="0"  y="15" width="110" height="15" fill="#150606" stroke="#2a1010" stroke-width="1"/>
-          <rect x="0"  y="30" width="100" height="15" fill="#110404" stroke="#1a0808" stroke-width="1"/>
-          <rect x="0"  y="45" width="90"  height="15" fill="#0d0303" stroke="#1a0808" stroke-width="1"/>
-          <rect x="0"  y="60" width="80"  height="15" fill="#080202" stroke="#150606" stroke-width="1"/>
-          <rect x="0"  y="75" width="70"  height="15" fill="#050101" stroke="#110404" stroke-width="1"/>
-          <!-- 암흑 그라디언트 -->
+        <svg width="200" height="150" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="dark-fade" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#000" stop-opacity="0"/>
-              <stop offset="100%" stop-color="#000" stop-opacity="0.95"/>
+              <stop offset="0%"   stop-color="#000" stop-opacity="0.96"/>
+              <stop offset="55%"  stop-color="#000" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#000" stop-opacity="0"/>
             </linearGradient>
           </defs>
-          <rect x="0" y="0" width="120" height="90" fill="url(#dark-fade)"/>
+          <!-- 좁은 쪽이 위(먼 곳·암흑), 넓은 쪽이 아래(가까운 곳·시점) -->
+          <rect x="0" y="0"   width="68"  height="25" fill="#050101" stroke="#0d0202" stroke-width="1"/>
+          <rect x="0" y="25"  width="90"  height="25" fill="#080202" stroke="#110404" stroke-width="1"/>
+          <rect x="0" y="50"  width="112" height="25" fill="#0d0303" stroke="#150606" stroke-width="1"/>
+          <rect x="0" y="75"  width="136" height="25" fill="#110404" stroke="#1a0808" stroke-width="1"/>
+          <rect x="0" y="100" width="160" height="25" fill="#150606" stroke="#1f0909" stroke-width="1"/>
+          <rect x="0" y="125" width="186" height="25" fill="#1a0808" stroke="#2a1010" stroke-width="1"/>
+          <!-- 암흑은 위쪽(심연), 아래쪽(시점)은 투명 -->
+          <rect x="0" y="0" width="200" height="150" fill="url(#dark-fade)"/>
         </svg>
       </div>
 
@@ -409,6 +413,8 @@
   <!-- 정답 화면 -->
   <div class="overlay" id="correct-screen">
     <div class="correct-line">지하로 이어지는 문이 열렸다.</div>
+    <div class="correct-sep"></div>
+    <div class="correct-next">3# 지하통로 — 준비 중</div>
   </div>
 
 </div>
@@ -495,7 +501,6 @@ function checkAnswer() {
     stopAll();
     play('ambient', 0.5);
     $('correct-screen').classList.add('show');
-    setTimeout(() => { window.location.href = 'tunnel.html'; }, 2200);
   } else {
     $('wrong-popup').classList.add('show');
   }
